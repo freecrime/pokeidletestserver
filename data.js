@@ -11,7 +11,7 @@ const DEBUG_PASSWORD = 'pokemon123'; // Change this to your own password
 const GEM_BOOST_EVENT = {
   active: true,
   multiplier: 2,
-  endDate: '2026-03-08T23:59:59Z', // Sunday 8.3.2026
+  endDate: '2026-04-13T23:59:59Z', // Sunday 8.3.2026
 };
 
 // Groudon & Kyogre Boss — permanent
@@ -762,8 +762,8 @@ function getStatGrade(iv) {
 }
 
 function newPokemonEntry(id, name, types, level, isShiny=false, _skipLvl250=false) {
-  // All player-obtained Pokemon are set to Lv.250 (unless it's an enemy/boss spawn)
-  const finalLevel = _skipLvl250 ? level : 250;
+  // Enemies keep their exact level. Player-obtained pokemon are capped at 250 (preserving levels below 250, e.g. starter at Lv.5).
+  const finalLevel = _skipLvl250 ? level : Math.min(250, level);
   const pk = {
     uid: ++pUid, id, name, types, level: finalLevel, isShiny,
     currentHp: null, statsLoaded: false, stats: null,

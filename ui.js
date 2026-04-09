@@ -1899,7 +1899,112 @@ function loadGame() {
 }
 
 setInterval(saveGame, 30000);
-function forceSave() { saveGame(); const slotName = activeSlotIdx !== null ? (getAllSaves()[activeSlotIdx]||{}).name||('Slot '+(activeSlotIdx+1)) : null; toast(slotName ? ('💾 Saved to: ' + slotName) : '⚠️ No save slot selected! Load or create a slot first.', 2500); }
+function forceSave() {
+  const saves = getAllSaves();
+  let slotsHtml = '';
+  for (let i = 0; i < MAX_SAVES; i++) {
+    const s = saves[i];
+    const isActive = activeSlotIdx === i;
+    if (s) {
+      const date = new Date(s.savedAt);
+      const dateStr = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      slotsHtml += `
+        <div style="
+          display:flex;align-items:center;gap:6px;margin-bottom:6px;
+          background:${isActive ? 'rgba(102,187,106,0.12)' : 'rgba(255,255,255,0.03)'};
+          border:1px solid ${isActive ? '#66bb6a' : 'var(--border)'};
+          border-radius:8px;padding:7px 10px;
+        ">
+          <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-family:'VT323',monospace;font-size:15px;color:${isActive ? '#66bb6a' : 'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+              💾 Slot ${i+1}: <strong>${s.name}</strong>${isActive ? ' <span style="color:#66bb6a;font-size:12px">▶ ACTIVE</span>' : ''}
+            </div>
+            <div style="font-size:11px;color:var(--text2)">OT: ${s.trainerName || 'Trainer'} · ${dateStr}</div>
+          </div>
+          <div style="display:flex;gap:4px;flex-shrink:0">
+            <button onclick="forceSaveToSlot(${i})" title="Save here" style="background:rgba(102,187,106,0.15);border:1px solid #66bb6a;color:#66bb6a;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:14px">💾</button>
+            <button onclick="forceSaveRename(${i})" title="Rename" style="background:rgba(255,213,79,0.12);border:1px solid #ffd54f;color:#ffd54f;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:14px">✏️</button>
+            <button onclick="forceSaveDelete(${i})" title="Delete" style="background:rgba(239,83,80,0.1);border:1px solid #ef5350;color:#ef5350;padding:4px 8px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:14px">🗑</button>
+          </div>
+        </div>`;
+    } else {
+      slotsHtml += `
+        <div style="
+          display:flex;align-items:center;gap:6px;margin-bottom:6px;
+          background:rgba(255,255,255,0.02);border:1px dashed #444;
+          border-radius:8px;padding:7px 10px;
+        ">
+          <div style="flex:1;font-family:'VT323',monospace;font-size:15px;color:#666">➕ Slot ${i+1}: <em>Empty</em></div>
+          <button onclick="forceSaveToSlot(${i})" style="background:rgba(102,187,106,0.1);border:1px solid #66bb6a;color:#66bb6a;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:14px">💾 Save here</button>
+        </div>`;
+    }
+  }
+  document.getElementById('modal-title').textContent = '💾 Save Manager';
+  document.getElementById('modal-title').style.cssText = '';
+  document.getElementById('modal-content').innerHTML = `
+    <div style="margin-bottom:10px;font-size:13px;color:var(--text2)">Save, rename, or delete your save slots:</div>
+    ${slotsHtml}
+    <button class="btn" onclick="closeModal()" style="width:100%;margin-top:4px">Close</button>
+  `;
+  openModal();
+}
+
+function forceSaveToSlot(slotIdx) {
+  const saves = getAllSaves();
+  const existing = saves[slotIdx];
+  if (existing && activeSlotIdx !== null && activeSlotIdx !== slotIdx) {
+    const activeName = saves[activeSlotIdx] ? saves[activeSlotIdx].name : `Slot ${activeSlotIdx+1}`;
+    if (!confirm(`⚠️ You are currently playing "${activeName}" (Slot ${activeSlotIdx+1}).\n\nOverwrite "${existing.name}" (Slot ${slotIdx+1}) instead?\n\nThis cannot be undone!`)) return;
+  }
+  let slotName;
+  if (existing) {
+    slotName = existing.name;
+  } else {
+    const entered = prompt('Name this save slot:', `Save ${slotIdx+1}`);
+    if (entered === null) return;
+    slotName = entered.trim() || `Save ${slotIdx+1}`;
+    const ot = prompt('Trainer name (OT):', gameState.trainerName || 'Trainer');
+    if (ot === null) return;
+    gameState.trainerName = ot.trim().substring(0, 12) || gameState.trainerName;
+  }
+  saves[slotIdx] = buildSaveData(slotName);
+  setAllSaves(saves);
+  activeSlotIdx = slotIdx;
+  closeModal();
+  toast(`💾 Saved to: ${slotName}`, 2500);
+}
+
+function forceSaveRename(slotIdx) {
+  const saves = getAllSaves();
+  const s = saves[slotIdx];
+  if (!s) return;
+  const newFileName = prompt('Rename save file:', s.name);
+  if (newFileName === null) return;
+  const newOT = prompt('Rename trainer (OT):', s.trainerName || 'Trainer');
+  if (newOT === null) return;
+  s.name = newFileName.trim() || s.name;
+  s.trainerName = newOT.trim().substring(0, 12) || s.trainerName;
+  // Also update live gameState OT if this is the active slot
+  if (activeSlotIdx === slotIdx) {
+    gameState.trainerName = s.trainerName;
+  }
+  saves[slotIdx] = s;
+  setAllSaves(saves);
+  toast(`✏️ Renamed to: ${s.name} (OT: ${s.trainerName})`, 2500);
+  forceSave(); // re-render the modal
+}
+
+function forceSaveDelete(slotIdx) {
+  const saves = getAllSaves();
+  const s = saves[slotIdx];
+  if (!s) return;
+  if (!confirm(`🗑 Delete "${s.name}" (Slot ${slotIdx+1})?\n\nThis cannot be undone!`)) return;
+  saves[slotIdx] = undefined;
+  setAllSaves(saves.map(x => x));
+  if (activeSlotIdx === slotIdx) activeSlotIdx = null;
+  toast('🗑 Save deleted.', 2000);
+  forceSave(); // re-render the modal
+}
 
 function confirmWipeData() {
   document.getElementById('modal-title').textContent = '⚠️ Reset All Data?';
