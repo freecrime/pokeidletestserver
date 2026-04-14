@@ -104,6 +104,7 @@
         <button class="tab-btn" onclick="switchTab('gacha')">Gacha</button>
         <button class="tab-btn" onclick="switchTab('items')">Items</button>
         <button class="tab-btn" onclick="switchTab('road')" style="color:#b388ff">💎</button>
+        <button class="tab-btn" onclick="switchTab('egg')" style="color:#f8bbd0">🥚</button>
       </div>
 
       <!-- TEAM TAB -->
@@ -299,6 +300,11 @@
       <div class="tab-content" id="tab-road">
         <div id="road-ui" style="width:100%;text-align:center"></div>
       </div>
+
+      <!-- EGG / BREEDING TAB -->
+      <div class="tab-content" id="tab-egg">
+        <div id="egg-ui"></div>
+      </div>
     </div>
   </div>
 
@@ -422,6 +428,13 @@
       <div style="font-size:12px;color:#8888bb;margin-top:4px;text-align:center">Forces Royal Sword/Shield or Outer World Meteor (needs Rare Drop ON too)</div>
       <button id="dbg-shiny-drop-btn" onclick="debugToggleShinyDrop()" style="width:100%;margin-top:8px;background:rgba(255,215,0,0.12);border:1px solid #ffd700;color:#ffd700;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:17px">★ Guarantee Shiny Boss Drop: OFF</button>
       <div style="font-size:12px;color:#8888bb;margin-top:4px;text-align:center">Forces shiny on Rayquaza, Giratina &amp; Kyurem drops</div>
+    </div>
+
+    <!-- FAST HATCH -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;margin-top:4px">
+      <div style="color:#f48fb1;font-size:16px;margin-bottom:8px">🥚 Egg Breeding</div>
+      <button onclick="debugFastHatch()" style="width:100%;background:rgba(244,143,177,0.12);border:1px solid #f48fb1;color:#f48fb1;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:17px">⚡ Fast Hatch All Eggs</button>
+      <div style="font-size:12px;color:#8888bb;margin-top:4px;text-align:center">Instantly makes all active breeding eggs claimable</div>
     </div>
   </div>
 </div>

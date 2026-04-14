@@ -5,7 +5,7 @@
 // 2× Diamond Road Gem Boost — set endDate to control when it expires
 // Set endDate to a past date to disable, far future to make permanent
 // ── Dev toggle — set to true to show the debug button ──
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 const DEBUG_PASSWORD = 'pokemon123'; // Change this to your own password
 
 const GEM_BOOST_EVENT = {
@@ -290,7 +290,7 @@ let gameState = {
   team: [], box: [], inventory: {}, equippedItems: {},
   currentFighterIdx: 0, dailyClaimed: false, lastDaily: 0,
   road: { active: false, floor: 0, winsOnFloor: 0, winsNeeded: 30, mode: null, farmRegionIdx: 0 },
-  trainerName: 'Trainer', lockedPokemon: []
+  trainerName: 'Trainer', lockedPokemon: [], breedingSlots: []
 };
 
 let currentEnemy = null;
@@ -969,8 +969,17 @@ function getAttack(pokemon) {
   if(!pokemon.stats) return 50;
   const base = pokemon.stats.find(s=>s.stat.name==='attack').base_stat;
   const spa = pokemon.stats.find(s=>s.stat.name==='special-attack').base_stat;
-  const atk = Math.max(base, spa);
-  const statName = atk >= spa ? 'attack' : 'special-attack';
+  // If player has chosen an attack mode, respect it; enemies always use best
+  let statName;
+  if(pokemon._attackMode === 'physical') {
+    statName = 'attack';
+  } else if(pokemon._attackMode === 'special') {
+    statName = 'special-attack';
+  } else {
+    // default: use the higher one
+    statName = base >= spa ? 'attack' : 'special-attack';
+  }
+  const atk = statName === 'attack' ? base : spa;
   const iv = pokemon.ivs ? pokemon.ivs[statName] : 15;
   let val = Math.floor(((atk * 2 + iv) * pokemon.level / 100) + 5);
   return getEffectiveStat(val, pokemon, statName);

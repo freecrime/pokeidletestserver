@@ -126,13 +126,14 @@ function loadSaveSlotFromPicker(slotIdx) {
     if(!gameState.road.mode) gameState.road.mode = gameState.road.active ? 'floor' : null;
     gameState.trainerName = s.trainerName || 'Trainer';
     pUid = s.pUid || 0;
-    gameState.box = (s.box || []).map(p => ({ ...p, statsLoaded: !!p.stats, ivs: p.ivs || generateIVs(), ot: p.ot || s.trainerName || 'Trainer' }));
+    gameState.box = (s.box || []).map(p => ({ ...p, statsLoaded: !!p.stats, ivs: p.ivs || generateIVs(), ot: p.ot || s.trainerName || 'Trainer', _attackMode: p._attackMode || 'physical' }));
     // Normalize: all player pokemon above 250 get capped to 250
     gameState.box.forEach(p => { if(p.level > 250) { p.level = 250; p.expToNext = calcExpToNext(250); p.exp = 0; } });
     gameState.team = (s.teamUids || []).map(uid => gameState.box.find(p=>p.uid===uid)).filter(Boolean);
     gameState.currentFighterIdx = Math.min(s.currentFighterIdx||0, Math.max(0,gameState.team.length-1));
     gameState.lockedPokemon = s.lockedPokemon || [];
     gameState.megaStoneInstances = s.megaStoneInstances || {};
+    gameState.breedingSlots = s.breedingSlots || [];
 
     // Boss/Legendary team cap: keep first 3, move rest to box
     { let bc = 0; const keep = [], toBox = [];

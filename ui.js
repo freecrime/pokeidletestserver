@@ -178,6 +178,7 @@ function showPokemonInfoCard(pk) {
       </div>
     </div>
     ${pk.stats ? renderMiniStats(pk) : '<div style="color:var(--text2);font-size:13px">Stats not yet loaded</div>'}
+    ${renderAttackModeSelector(pk)}
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       ${gameState.team.includes(pk) ? `<button class="btn" style="flex:1;border-color:#ef5350;color:#ef5350" onclick="removeFromTeamByUid(${pk.uid});closeModal()">Remove</button>` : `<button class="btn gold" style="flex:1" onclick="addToTeam(${pk.uid});closeModal()">Add to Team</button>`}
       <button class="btn" style="flex:1;border-color:#ab47bc;color:#ab47bc" onclick="rollHighStats(${pk.uid})">🎲 Roll High Stats<br><span style="font-size:12px;color:var(--gold)">6,000 💎</span></button>
@@ -187,6 +188,331 @@ function showPokemonInfoCard(pk) {
     </div>
   `;
   openModal();
+}
+
+function renderAttackModeSelector(pk) {
+  const attacks = getPokemonAttacks(pk);
+  if(!attacks) return '';
+  const mode = pk._attackMode || 'physical';
+  const physAtk = attacks.physical;
+  const specAtk = attacks.special;
+  return `<div style="background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:10px 12px;margin-top:8px;margin-bottom:4px">
+    <div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-bottom:8px">⚔️ ATTACK MODE</div>
+    <div style="display:flex;gap:6px">
+      <button onclick="setAttackMode(${pk.uid},'physical')" style="flex:1;padding:7px 4px;border-radius:7px;cursor:pointer;font-family:'VT323',monospace;font-size:15px;transition:all 0.15s;${mode==='physical' ? 'background:rgba(255,158,64,0.25);border:2px solid #ff9e40;color:#ff9e40' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:var(--text2)'}">
+        ⚡ ${physAtk.name}<br><span style="font-size:11px;color:${mode==='physical'?'#ffcc80':'#888'}">Physical · uses ATK</span>
+      </button>
+      <button onclick="setAttackMode(${pk.uid},'special')" style="flex:1;padding:7px 4px;border-radius:7px;cursor:pointer;font-family:'VT323',monospace;font-size:15px;transition:all 0.15s;${mode==='special' ? 'background:rgba(171,71,188,0.25);border:2px solid #ab47bc;color:#ce93d8' : 'background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.15);color:var(--text2)'}">
+        ✨ ${specAtk.name}<br><span style="font-size:11px;color:${mode==='special'?'#ce93d8':'#888'}">Special · uses SpA</span>
+      </button>
+    </div>
+  </div>`;
+}
+
+// Map Pokémon types to fitting moves
+const TYPE_ATTACKS = {
+  normal:   {physical:{name:'Body Slam'},   special:{name:'Hyper Voice'}},
+  fire:     {physical:{name:'Fire Punch'},   special:{name:'Flamethrower'}},
+  water:    {physical:{name:'Waterfall'},    special:{name:'Surf'}},
+  grass:    {physical:{name:'Leaf Blade'},   special:{name:'Energy Ball'}},
+  electric: {physical:{name:'Wild Charge'},  special:{name:'Thunderbolt'}},
+  ice:      {physical:{name:'Ice Punch'},     special:{name:'Ice Beam'}},
+  fighting: {physical:{name:'Close Combat'},  special:{name:'Aura Sphere'}},
+  poison:   {physical:{name:'Poison Jab'},    special:{name:'Sludge Bomb'}},
+  ground:   {physical:{name:'Earthquake'},    special:{name:'Earth Power'}},
+  flying:   {physical:{name:'Brave Bird'},    special:{name:'Air Slash'}},
+  psychic:  {physical:{name:'Zen Headbutt'},  special:{name:'Psychic'}},
+  bug:      {physical:{name:'X-Scissor'},     special:{name:'Bug Buzz'}},
+  rock:     {physical:{name:'Rock Slide'},    special:{name:'Power Gem'}},
+  ghost:    {physical:{name:'Shadow Claw'},   special:{name:'Shadow Ball'}},
+  dragon:   {physical:{name:'Dragon Claw'},   special:{name:'Draco Meteor'}},
+  dark:     {physical:{name:'Crunch'},        special:{name:'Dark Pulse'}},
+  steel:    {physical:{name:'Iron Head'},     special:{name:'Flash Cannon'}},
+  fairy:    {physical:{name:'Play Rough'},    special:{name:'Moonblast'}},
+};
+
+function getPokemonAttacks(pk) {
+  if(!pk || !pk.types || pk.types.length === 0) return null;
+  const primaryType = pk.types[0];
+  return TYPE_ATTACKS[primaryType] || TYPE_ATTACKS['normal'];
+}
+
+function setAttackMode(uid, mode) {
+  const pk = gameState.box.find(p => p.uid === uid);
+  if(!pk) return;
+  pk._attackMode = mode;
+  saveGame();
+  showPokemonInfoCard(pk);
+}
+
+// ============================================================
+// BREEDING SYSTEM
+// ============================================================
+
+const MAX_BREEDING_SLOTS = 3;
+const BREEDING_BASE_MS = 3600 * 1000; // 1 hour
+const BREEDING_LONG_MS = 12 * 3600 * 1000; // 12 hours (S overall or higher)
+
+function isDitto(pk) {
+  return pk && pk.id === 132;
+}
+
+function canBreed(pkA, pkB) {
+  if(!pkA || !pkB) return false;
+  if(pkA.uid === pkB.uid) return false;
+  // Same species
+  if(pkA.id === pkB.id) return true;
+  // One is Ditto
+  if(isDitto(pkA) || isDitto(pkB)) return true;
+  return false;
+}
+
+function breedingOverallGrade(pk) {
+  if(!pk.ivs) return 'F';
+  const avg = Math.round(Object.values(pk.ivs).reduce((a,b)=>a+b,0)/6);
+  return getStatGrade(avg).label;
+}
+
+function breedingDuration(childIVs) {
+  const avg = Math.round(Object.values(childIVs).reduce((a,b)=>a+b,0)/6);
+  const g = getStatGrade(avg);
+  // S, SS or special labels => 12h; otherwise 1h
+  const longGrades = ['S','SS','SSS'];
+  return longGrades.includes(g.label) ? BREEDING_LONG_MS : BREEDING_BASE_MS;
+}
+
+function generateBreedingIVs(pkA, pkB) {
+  // Real breeding logic:
+  // - 3 randomly chosen stats are inherited from one of the two parents
+  // - The other 3 are fully random (0-31), totally independent of parents
+  // - Each inherited stat has a ±0-4 mutation roll: can go UP (lucky!) or DOWN (unlucky)
+  // - This means a child can be better OR worse than both parents
+  const stats = ['hp','attack','defense','special-attack','special-defense','speed'];
+  const ivsA = pkA.ivs || generateIVs();
+  const ivsB = pkB.ivs || generateIVs();
+  const child = {};
+
+  // Pick 3 random stats to inherit
+  const shuffled = [...stats].sort(() => Math.random() - 0.5);
+  const inheritedStats = new Set(shuffled.slice(0, 3));
+
+  stats.forEach(s => {
+    if(inheritedStats.has(s)) {
+      // Inherit from a random parent
+      const base = Math.random() < 0.5 ? (ivsA[s] ?? 15) : (ivsB[s] ?? 15);
+      // Mutation: -4 to +4, weighted slightly toward 0
+      const mutation = Math.floor(Math.random() * 9) - 4; // -4 to +4
+      child[s] = Math.max(0, Math.min(31, base + mutation));
+    } else {
+      // Completely random — could be great or terrible
+      child[s] = Math.floor(Math.random() * 32);
+    }
+  });
+
+  return child;
+}
+
+function startBreeding(uidA, uidB) {
+  if((gameState.breedingSlots||[]).length >= MAX_BREEDING_SLOTS) {
+    toast('🥚 All breeding slots are occupied!', 2500); return;
+  }
+  const pkA = gameState.box.find(p=>p.uid===uidA);
+  const pkB = gameState.box.find(p=>p.uid===uidB);
+  if(!pkA || !pkB) return;
+  if(!canBreed(pkA, pkB)) { toast('❌ These two cannot breed!', 2500); return; }
+
+  // Determine child species (not Ditto)
+  const parent = isDitto(pkA) ? pkB : pkA;
+  const childIVs = generateBreedingIVs(pkA, pkB);
+  const isShiny = Math.random() < 1/100;
+  const dur = breedingDuration(childIVs);
+
+  const slot = {
+    id: Date.now(),
+    parentAUid: uidA, parentBUid: uidB,
+    parentAName: pkA.name, parentBName: pkB.name,
+    childId: parent.id, childName: parent.name, childTypes: parent.types,
+    childIVs, isShiny,
+    startedAt: Date.now(),
+    duration: dur,
+    done: false,
+  };
+  if(!gameState.breedingSlots) gameState.breedingSlots = [];
+  gameState.breedingSlots.push(slot);
+  saveGame();
+  toast(`🥚 ${pkA.name} & ${pkB.name} started breeding! (${dur >= BREEDING_LONG_MS ? '12h' : '1h'})`, 3000);
+  renderEggUI();
+}
+
+function claimEgg(slotId) {
+  const idx = (gameState.breedingSlots||[]).findIndex(s=>s.id===slotId);
+  if(idx === -1) return;
+  const slot = gameState.breedingSlots[idx];
+  if(!slot.done && Date.now() < slot.startedAt + slot.duration) {
+    toast('🥚 The egg is not ready yet!', 2000); return;
+  }
+  // Create the baby pokemon
+  const parent = gameState.box.find(p=>p.id===slot.childId && !isDitto(p));
+  const childLevel = 1;
+  const child = newPokemonEntry(slot.childId, slot.childName, slot.childTypes, childLevel, slot.isShiny);
+  child.ivs = slot.childIVs;
+  child._attackMode = 'physical';
+  child.ot = gameState.trainerName;
+  // Load stats asynchronously
+  fetchPokemonStats(slot.childId).then(stats => {
+    child.stats = stats; child.statsLoaded = true;
+    child.currentHp = getMaxHp(child);
+    saveGame();
+  });
+  gameState.box.push(child);
+  gameState.breedingSlots.splice(idx, 1);
+  saveGame();
+  const avg = Math.round(Object.values(slot.childIVs).reduce((a,b)=>a+b,0)/6);
+  const grade = getStatGrade(avg);
+  toast(`${slot.isShiny?'✨ SHINY ':''} 🐣 ${slot.childName} hatched! (${grade.label} overall)`, 4000);
+  renderEggUI();
+}
+
+function debugFastHatch() {
+  const slots = gameState.breedingSlots || [];
+  if(slots.length === 0) { toast('🥚 No active breeding slots!', 2000); return; }
+  slots.forEach(s => { s.startedAt = Date.now() - s.duration - 1; });
+  saveGame();
+  toast(`⚡ All ${slots.length} egg(s) are now ready to claim!`, 3000);
+  renderEggUI();
+}
+
+function renderEggUI() {
+  const el = document.getElementById('egg-ui');
+  if(!el) return;
+
+  const slots = gameState.breedingSlots || [];
+  const now = Date.now();
+
+  let html = `<div style="font-family:'Press Start 2P';font-size:8px;color:#f8bbd0;margin-bottom:10px">🥚 BREEDING CENTER</div>`;
+  html += `<div style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.7">Breed same-species pairs or use Ditto.<br>Better IVs = longer hatch time.</div>`;
+
+  // Active slots
+  if(slots.length > 0) {
+    html += `<div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-bottom:6px">ACTIVE (${slots.length}/${MAX_BREEDING_SLOTS})</div>`;
+    slots.forEach(slot => {
+      const elapsed = now - slot.startedAt;
+      const pct = Math.min(100, Math.round((elapsed / slot.duration) * 100));
+      const ready = elapsed >= slot.duration;
+      const remaining = Math.max(0, slot.duration - elapsed);
+      const remStr = ready ? '✅ READY!' : formatBreedTime(remaining);
+      const avg = Math.round(Object.values(slot.childIVs).reduce((a,b)=>a+b,0)/6);
+      const grade = getStatGrade(avg);
+      const shinyTag = slot.isShiny ? `<span class="shiny-text" style="font-size:11px">★ SHINY!</span>` : '';
+      html += `<div style="background:rgba(248,187,208,0.07);border:1px solid rgba(248,187,208,${ready?'0.6':'0.2'});border-radius:10px;padding:10px 12px;margin-bottom:8px${ready?';box-shadow:0 0 14px rgba(248,187,208,0.3)':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <div style="font-size:15px;color:#f8bbd0">${slot.parentAName} ♥ ${slot.parentBName}</div>
+          <div style="font-size:12px;color:var(--text2)">→ 🥚 ${slot.childName}</div>
+        </div>
+        ${shinyTag}
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+          <div style="flex:1;height:7px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden">
+            <div style="height:100%;border-radius:4px;background:${ready?'#f48fb1':'linear-gradient(90deg,#f8bbd0,#f48fb1)'};width:${pct}%;transition:width 1s linear"></div>
+          </div>
+          <div style="font-size:13px;color:${ready?'#f48fb1':'var(--text2)'};min-width:80px;text-align:right">${remStr}</div>
+        </div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:7px">Egg IV grade: <span style="color:${grade.color};font-family:'Press Start 2P',monospace;font-size:7px">${grade.label}</span></div>
+        ${ready ? `<button onclick="claimEgg(${slot.id})" style="width:100%;background:rgba(244,143,177,0.2);border:1px solid #f48fb1;color:#f48fb1;padding:6px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🐣 Claim Egg!</button>` : `<div style="font-size:11px;color:#888;text-align:center;padding:2px 0">🔒 Breeding in progress — cannot be cancelled</div>`}
+      </div>`;
+    });
+  } else {
+    html += `<div style="text-align:center;color:var(--text2);font-size:14px;padding:18px 0;border:1px dashed rgba(248,187,208,0.2);border-radius:8px;margin-bottom:10px">No active breeding.<br>Pick two Pokémon below!</div>`;
+  }
+
+  if(slots.length < MAX_BREEDING_SLOTS) {
+    html += `<div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-top:10px;margin-bottom:6px">START NEW BREEDING</div>`;
+    html += renderBreedingPicker();
+  }
+
+  el.innerHTML = html;
+
+  // Refresh timer
+  clearTimeout(window._eggUiTimer);
+  if(slots.length > 0) {
+    window._eggUiTimer = setTimeout(() => {
+      if(document.getElementById('tab-egg') && document.getElementById('tab-egg').classList.contains('active')) {
+        renderEggUI();
+      }
+    }, 5000);
+  }
+}
+
+function renderBreedingPicker() {
+  // Show all box pokemon the player can pick; let them choose slot A and B
+  const state = window._breedPickState || { a: null, b: null };
+  window._breedPickState = state;
+
+  const pkA = state.a !== null ? gameState.box.find(p=>p.uid===state.a) : null;
+  const pkB = state.b !== null ? gameState.box.find(p=>p.uid===state.b) : null;
+  const compatible = pkA && pkB && canBreed(pkA, pkB);
+
+  let html = `<div style="display:flex;gap:8px;margin-bottom:10px">`;
+  // Slot A
+  html += `<div style="flex:1;background:rgba(0,0,0,0.2);border:1px solid ${pkA?'rgba(248,187,208,0.5)':'rgba(255,255,255,0.1)'};border-radius:8px;padding:8px;text-align:center;cursor:pointer;min-height:64px" onclick="openBreedPickOverlay('a')">
+    ${pkA ? `<img src="${getSpriteUrl(pkA.id,pkA.isShiny,pkA.uid)}" width="48" height="48"><div style="font-size:13px;color:#f8bbd0">${pkA.isShiny?'★ ':''}${pkA.name}</div>` : `<div style="font-size:22px;margin-top:8px">➕</div><div style="font-size:12px;color:var(--text2)">Parent A</div>`}
+  </div>`;
+  html += `<div style="display:flex;align-items:center;font-size:20px;color:#f8bbd0">♥</div>`;
+  // Slot B
+  html += `<div style="flex:1;background:rgba(0,0,0,0.2);border:1px solid ${pkB?'rgba(248,187,208,0.5)':'rgba(255,255,255,0.1)'};border-radius:8px;padding:8px;text-align:center;cursor:pointer;min-height:64px" onclick="openBreedPickOverlay('b')">
+    ${pkB ? `<img src="${getSpriteUrl(pkB.id,pkB.isShiny,pkB.uid)}" width="48" height="48"><div style="font-size:13px;color:#f8bbd0">${pkB.isShiny?'★ ':''}${pkB.name}</div>` : `<div style="font-size:22px;margin-top:8px">➕</div><div style="font-size:12px;color:var(--text2)">Parent B</div>`}
+  </div>`;
+  html += `</div>`;
+
+  if(pkA && pkB) {
+    if(compatible) {
+      html += `<div style="font-size:13px;color:#69f0ae;margin-bottom:7px;text-align:center">✅ Compatible! Ready to breed.</div>`;
+      html += `<button onclick="startBreeding(${pkA.uid},${pkB.uid})" style="width:100%;background:rgba(248,187,208,0.15);border:1px solid #f48fb1;color:#f48fb1;padding:9px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:18px;letter-spacing:1px">🥚 Start Breeding!</button>`;
+    } else {
+      html += `<div style="font-size:13px;color:#ef5350;margin-bottom:7px;text-align:center">❌ Incompatible! Same species or use Ditto.</div>`;
+    }
+  }
+
+  return html;
+}
+
+function openBreedPickOverlay(slot) {
+  // Render a picker modal
+  const other = slot === 'a' ? window._breedPickState.b : window._breedPickState.a;
+  const candidates = gameState.box.filter(p => {
+    // Can always pick any pokemon; compatibility shown live
+    return true;
+  });
+  document.getElementById('modal-title').textContent = `🥚 Pick ${slot === 'a' ? 'Parent A' : 'Parent B'}`;
+  document.getElementById('modal-title').style.cssText = '';
+  const grid = candidates.map(pk => {
+    const otherPk = other !== null ? gameState.box.find(p=>p.uid===other) : null;
+    const compat = otherPk ? canBreed(pk, otherPk) : true;
+    return `<div onclick="selectBreedParent('${slot}',${pk.uid})" style="cursor:pointer;text-align:center;padding:7px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid rgba(${compat?'248,187,208':'255,255,255'},0.${compat?'25':'08'});opacity:${compat?'1':'0.45'}">
+      <img src="${getSpriteUrl(pk.id,pk.isShiny,pk.uid)}" width="48" height="48">
+      <div style="font-size:12px;color:${pk.isShiny?'#ffd700':'var(--text)'}">${pk.isShiny?'★ ':''}${pk.name}</div>
+      <div style="font-size:11px;color:var(--text2)">Lv.${pk.level}</div>
+      ${isDitto(pk) ? '<div style="font-size:10px;color:#f48fb1">Ditto ★</div>' : ''}
+    </div>`;
+  }).join('');
+  document.getElementById('modal-content').innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-height:380px;overflow-y:auto">${grid}</div>`;
+  openModal();
+}
+
+function selectBreedParent(slot, uid) {
+  window._breedPickState = window._breedPickState || { a: null, b: null };
+  window._breedPickState[slot] = uid;
+  closeModal();
+  renderEggUI();
+}
+
+function formatBreedTime(ms) {
+  const totalSec = Math.floor(ms / 1000);
+  const h = Math.floor(totalSec / 3600);
+  const m = Math.floor((totalSec % 3600) / 60);
+  const s = totalSec % 60;
+  if(h > 0) return `${h}h ${m}m`;
+  if(m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
 }
 
 function renderMiniStats(pk) {
@@ -1290,12 +1616,13 @@ function closeModal(event) {
 // ============================================================
 
 function switchTab(name) {
-  const tabs = ['team','box','gacha','items','road'];
+  const tabs = ['team','box','gacha','items','road','egg'];
   document.querySelectorAll('.tab-btn').forEach((b,i)=>{ b.classList.toggle('active', tabs[i]===name); });
   document.querySelectorAll('.tab-content').forEach(c=>{ c.classList.toggle('active', c.id==='tab-'+name); });
   if(name==='box') renderPokemonBox();
   if(name==='items') renderItems();
   if(name==='road') renderRoadUI();
+  if(name==='egg') renderEggUI();
 }
 
 function toggleAuto() {
@@ -2531,12 +2858,14 @@ function buildSaveData(slotName) {
       _naturalSSS:p._naturalSSS||false, _noEvolve:p._noEvolve||false, _customSprite:p._customSprite||null,
       _sssUsed:p._sssUsed||false, _sssStat:p._sssStat||null, _noMega:p._noMega||false, _isBossCode:p._isBossCode||false, _isEnvy:p._isEnvy||false,
       _zygardeForm:p._zygardeForm||null, _isHeroGreninja:p._isHeroGreninja||false,
-      _deoxysForm:p._deoxysForm||null, _isDeoxys:p._isDeoxys||false
+      _deoxysForm:p._deoxysForm||null, _isDeoxys:p._isDeoxys||false,
+      _attackMode:p._attackMode||'physical'
     })),
     teamUids: gameState.team.map(p=>p.uid),
     currentFighterIdx: gameState.currentFighterIdx,
     lockedPokemon: gameState.lockedPokemon || [],
     megaStoneInstances: gameState.megaStoneInstances || {},
+    breedingSlots: gameState.breedingSlots || [],
   };
 }
 
