@@ -331,7 +331,7 @@ function renderCLBattle() {
 </div>
 
 <!-- BATTLE FIELD — enemy top-right, player bottom-left (classic GBA layout) -->
-<div style="background:linear-gradient(180deg,#0d1117 0%,#131d2e 40%,#1a2535 60%,#0f1923 100%);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.06);position:relative;min-height:210px">
+<div class="cl-field" style="background:linear-gradient(180deg,#0d1117 0%,#131d2e 40%,#1a2535 60%,#0f1923 100%);border-radius:10px;padding:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.06);position:relative;min-height:210px">
 
   <!-- ENEMY INFO CARD — top left -->
   <div style="display:flex;justify-content:flex-start;margin-bottom:4px">
@@ -353,13 +353,13 @@ function renderCLBattle() {
 
   <!-- ENEMY SPRITE — top RIGHT (front-facing, no back sprite) -->
   <div style="position:absolute;top:8px;right:14px">
-    <img src="${enemy._customSprite || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${enemy.id}.png`}"
+    <img id="cl-sprite-enemy" src="${enemy._customSprite || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${enemy.id}.png`}"
       style="width:96px;height:96px;image-rendering:pixelated;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.9))">
   </div>
 
   <!-- PLAYER SPRITE — bottom LEFT (back sprite, larger, feels closer) -->
   <div style="position:absolute;bottom:8px;left:14px">
-    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${player.id}.png"
+    <img id="cl-sprite-player" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/${player.id}.png"
       style="width:108px;height:108px;image-rendering:pixelated;filter:drop-shadow(0 6px 10px rgba(0,0,0,0.9))"
       onerror="this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${player.id}.png'">
   </div>
@@ -404,11 +404,48 @@ function clLog(msg, color) {
   window._clBattle.log.push({ msg, color });
 }
 
+// ── Battle animations ──────────────────────────────────────────
+function clAnimAttack(isPlayer) {
+  const id = isPlayer ? 'cl-sprite-player' : 'cl-sprite-enemy';
+  const cls = isPlayer ? 'cl-anim-attack-p' : 'cl-anim-attack-e';
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove(cls);
+  void el.offsetWidth; // reflow to restart
+  el.classList.add(cls);
+  setTimeout(() => el.classList.remove(cls), 500);
+}
+
+function clAnimHurt(isPlayer) {
+  // The *defender* gets hurt — so if player attacks, enemy gets hurt
+  const id = isPlayer ? 'cl-sprite-enemy' : 'cl-sprite-player';
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('cl-anim-hurt');
+  void el.offsetWidth;
+  el.classList.add('cl-anim-hurt');
+  setTimeout(() => el.classList.remove('cl-anim-hurt'), 550);
+}
+
+function clAnimShake(isPlayer) {
+  // Screen / field shake for big hits
+  const field = document.querySelector('#cl-content .cl-field');
+  if (!field) return;
+  field.classList.remove('cl-anim-shake');
+  void field.offsetWidth;
+  field.classList.add('cl-anim-shake');
+  setTimeout(() => field.classList.remove('cl-anim-shake'), 400);
+}
+
+// ── Turn cooldown state ────────────────────────────────────────
+let _clInputCooldown = false;
+
 // ── Turn execution ─────────────────────────────────────────────
 async function clPlayerMove(mi) {
   const b = window._clBattle;
-  if (!b || !b.waitingForAction) return;
+  if (!b || !b.waitingForAction || _clInputCooldown) return;
   b.waitingForAction = false;
+  _clInputCooldown = true;
 
   const player = b.playerTeam[b.playerIdx];
   const enemy  = b.enemyTeam[b.enemyIdx];
@@ -425,24 +462,22 @@ async function clPlayerMove(mi) {
   const eSpd = clGetSpd(enemy);
 
   if (pSpd >= eSpd) {
-    // Player attacks first
     clExecMove(player, move, moveName, enemy, true);
-    // Enemy only attacks back if it's still alive AND player is still alive
     if (enemy.currentHp > 0 && player.currentHp > 0) clEnemyTurn(player, enemy);
   } else {
-    // Enemy attacks first
     clEnemyTurn(player, enemy);
-    // Player attacks back only if they survived AND enemy is still alive
     if (player.currentHp > 0 && enemy.currentHp > 0) clExecMove(player, move, moveName, enemy, true);
   }
 
-  // End-of-turn status damage — only if still alive
   if (player.currentHp > 0) clTickStatus(player);
   if (enemy.currentHp > 0)  clTickStatus(enemy);
 
   b.turn++;
   renderCLBattle();
   await clCheckFaint();
+
+  // Release cooldown after a short delay so UI feels responsive but not spammable
+  setTimeout(() => { _clInputCooldown = false; }, 650);
 }
 
 function clEnemyTurn(player, enemy) {
@@ -478,10 +513,14 @@ function clExecMove(attacker, move, moveName, defender, isPlayer) {
   if (move.cat === 'status') { clApplyStatus(move, attacker, defender, aLbl, dLbl); return; }
   if (!move.power) return;
 
+  // Trigger attack animation
+  clAnimAttack(isPlayer);
+
   if (move.selfKO) {
     const { dmg, typeMult } = clCalcDamage(attacker, move, defender);
     if (typeMult === 0) { clLog(`${dLbl} is immune!`, '#666'); return; }
     const ei = effectLabel(typeMult); if (ei) clLog(ei.text, ei.color);
+    setTimeout(() => clAnimHurt(isPlayer), 220);
     defender.currentHp = Math.max(0, defender.currentHp - dmg);
     attacker.currentHp = 0;
     clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b>! ${aLbl} fainted!`);
@@ -491,6 +530,12 @@ function clExecMove(attacker, move, moveName, defender, isPlayer) {
   const { dmg, typeMult } = clCalcDamage(attacker, move, defender);
   if (typeMult === 0) { clLog(`It doesn't affect ${dLbl}…`, '#666'); return; }
   const ei = effectLabel(typeMult); if (ei) clLog(ei.text, ei.color);
+
+  // Hurt animation on defender, shake on big hits
+  setTimeout(() => {
+    clAnimHurt(isPlayer);
+    if (typeMult >= 2) clAnimShake(isPlayer);
+  }, 220);
 
   defender.currentHp = Math.max(0, defender.currentHp - dmg);
   clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b> damage!`);
@@ -671,13 +716,18 @@ async function clTrainerDefeated() {
 function clGymBeaten() {
   const b = window._clBattle;
   const gym = b.isRed ? CL_RED : CL_GYMS[b.gymId];
-  // Always store numeric IDs as numbers so badges.includes(g.id - 1) works correctly
   const bid = b.isRed ? 'red' : (typeof b.gymId === 'string' ? parseInt(b.gymId, 10) : b.gymId);
 
   if (!gameState.cl.badges) gameState.cl.badges = [];
   if (!gameState.cl.badges.includes(bid)) gameState.cl.badges.push(bid);
   gameState.cl.phase = 'lobby';
+
+  // Gem rewards per gym (progressive, big reward for Red)
+  const GEM_REWARDS = [20, 35, 55, 80, 110, 150, 200, 275, 2500]; // 0-7 = gyms, 8 = Red
+  const gemReward = b.isRed ? 2500 : (GEM_REWARDS[bid] ?? 20);
+  gameState.gems += gemReward;
   saveGame();
+  updateResourceUI();
 
   const el = document.getElementById('cl-content');
 
@@ -686,13 +736,17 @@ function clGymBeaten() {
       <div style="font-size:48px;margin-bottom:10px">🏅</div>
       <div style="font-family:'Press Start 2P',monospace;font-size:11px;background:linear-gradient(90deg,#ff4444,#ffd700,#ff4444);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 1s linear infinite;margin-bottom:10px">YOU BEAT RED!</div>
       <div style="font-size:16px;color:var(--text2);margin-bottom:12px;line-height:1.7">You've conquered the Champion's League!<br>You are the true Champion!</div>
+      <div style="background:rgba(255,215,0,0.15);border:2px solid #ffd700;border-radius:10px;padding:14px;margin:10px 0">
+        <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#ffd700;margin-bottom:6px">💎 GEM REWARD</div>
+        <div style="font-size:22px;color:#ffd700">+${gemReward.toLocaleString()} 💎 Gems!</div>
+      </div>
       <div style="background:rgba(255,215,0,0.08);border:2px solid #ffd700;border-radius:10px;padding:16px;margin:12px 0;text-align:left">
         <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#ffd700;margin-bottom:8px;text-align:center">⭐ ACCOUNT FLAGGED</div>
         <div style="font-size:15px;color:var(--text);line-height:1.7">Your save has been flagged as eligible for a <b style="color:#ffd700">special custom Pokémon</b>. It will be added to your Box automatically in a future update. Keep an eye on your Box!</div>
       </div>
       <button onclick="renderCLLobby()" style="background:rgba(255,68,68,0.15);border:2px solid #ff4444;color:#ff4444;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:18px">🏆 Back to League</button>
     </div>`;
-    toast('🏅 You beat Red! A special Pokémon awaits in a future update!', 6000);
+    toast(`🏅 You beat Red! +${gemReward.toLocaleString()} 💎 Gems! A special Pokémon awaits!`, 7000);
     return;
   }
 
@@ -700,13 +754,16 @@ function clGymBeaten() {
     <div style="font-size:44px;margin-bottom:10px">${gym.badgeEmoji}</div>
     <div style="font-family:'Press Start 2P',monospace;font-size:10px;background:linear-gradient(90deg,${gym.color},#fff,${gym.color});background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 1.5s linear infinite;margin-bottom:8px">${gym.badge} obtained!</div>
     <div style="font-size:16px;color:var(--text2);margin-bottom:8px">You defeated ${gym.name}!</div>
+    <div style="background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.4);border-radius:8px;padding:10px;margin:8px 0">
+      <div style="font-size:18px;color:#ffd700">+${gemReward} 💎 Gems!</div>
+    </div>
     <div style="background:rgba(255,215,0,0.06);border:2px solid ${gym.color};border-radius:10px;padding:14px;margin:10px 0">
       <div style="font-family:'Press Start 2P',monospace;font-size:8px;color:#ffd700;margin-bottom:6px">🎁 IDLE BONUS UNLOCKED</div>
       <div style="font-size:17px;color:var(--text)">${gym.boost.icon} ${gym.boost.desc}</div>
     </div>
     <button onclick="renderCLLobby()" style="background:rgba(255,215,0,0.15);border:2px solid #ffd700;color:#ffd700;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:18px">🏆 Back to League</button>
   </div>`;
-  toast(`${gym.badgeEmoji} ${gym.badge} obtained! ${gym.boost.desc}`, 5000);
+  toast(`${gym.badgeEmoji} ${gym.badge} obtained! +${gemReward} 💎 ${gym.boost.desc}`, 5000);
 }
 
 function clBattleLost() {

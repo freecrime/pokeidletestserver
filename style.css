@@ -1075,3 +1075,38 @@ body::before {
 #trade-receive-input:focus { border-color: #00c853; }
 /* CHAMPION'S LEAGUE OVERLAY */
 #cl-overlay.active { display: flex; }
+
+/* CL Battle Animations */
+@keyframes cl-attack-player {
+  0%   { transform: translate(0,0) scale(1); }
+  25%  { transform: translate(80px,-30px) scale(1.15); }
+  50%  { transform: translate(160px,0) scale(1.2); }
+  75%  { transform: translate(60px,-10px) scale(1.05); }
+  100% { transform: translate(0,0) scale(1); }
+}
+@keyframes cl-attack-enemy {
+  0%   { transform: translate(0,0) scale(1); }
+  25%  { transform: translate(-80px,-30px) scale(1.15); }
+  50%  { transform: translate(-160px,0) scale(1.2); }
+  75%  { transform: translate(-60px,-10px) scale(1.05); }
+  100% { transform: translate(0,0) scale(1); }
+}
+@keyframes cl-hurt {
+  0%   { filter: brightness(1) drop-shadow(0 0 0 transparent); opacity:1; transform:translate(0,0); }
+  15%  { filter: brightness(10) drop-shadow(0 0 8px #fff); opacity:0.5; transform:translate(-10px,0); }
+  30%  { filter: brightness(1); opacity:1; transform:translate(8px,0); }
+  50%  { filter: brightness(8) drop-shadow(0 0 6px #ef5350); opacity:0.6; transform:translate(-6px,0); }
+  70%  { filter: brightness(1); opacity:1; transform:translate(4px,0); }
+  100% { filter: brightness(1); opacity:1; transform:translate(0,0); }
+}
+@keyframes cl-shake {
+  0%,100% { transform:translate(0,0); }
+  20%     { transform:translate(-6px,2px); }
+  40%     { transform:translate(5px,-2px); }
+  60%     { transform:translate(-4px,1px); }
+  80%     { transform:translate(3px,-1px); }
+}
+.cl-anim-attack-p { animation: cl-attack-player 0.45s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.cl-anim-attack-e { animation: cl-attack-enemy  0.45s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.cl-anim-hurt     { animation: cl-hurt  0.5s ease-out; }
+.cl-anim-shake    { animation: cl-shake 0.35s ease-out; }
