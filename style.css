@@ -1073,3 +1073,5 @@ body::before {
   margin-bottom: 10px;
 }
 #trade-receive-input:focus { border-color: #00c853; }
+/* CHAMPION'S LEAGUE OVERLAY */
+#cl-overlay.active { display: flex; }

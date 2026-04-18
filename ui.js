@@ -292,9 +292,10 @@ function generateBreedingIVs(pkA, pkB) {
   const ivsB = pkB.ivs || generateIVs();
   const child = {};
 
-  // Pick 3 random stats to inherit
+  // Pick 3 random stats to inherit (badge 5 = Sabrina gives +1 bonus inherited stat)
+  const clInheritBonus = typeof getCLBreedingInheritBonus === 'function' ? getCLBreedingInheritBonus() : 0;
   const shuffled = [...stats].sort(() => Math.random() - 0.5);
-  const inheritedStats = new Set(shuffled.slice(0, 3));
+  const inheritedStats = new Set(shuffled.slice(0, Math.min(6, 3 + clInheritBonus)));
 
   stats.forEach(s => {
     if(inheritedStats.has(s)) {
@@ -380,6 +381,20 @@ function debugFastHatch() {
   saveGame();
   toast(`⚡ All ${slots.length} egg(s) are now ready to claim!`, 3000);
   renderEggUI();
+}
+
+function debugCLRematch(gymId) {
+  // Close debug panel and open CL overlay directly at team select for this gym
+  closeDebug();
+  initCLState();
+  window._clTeamSel = [];
+  window._clMoveSel = {};
+  window._clItemSel = {};
+  const isRed = gymId === 'red';
+  const ov = document.getElementById('cl-overlay');
+  ov.style.display = 'flex';
+  renderCLTeamSelect(gymId, isRed);
+  toast(`🏆 CL Rematch: ${isRed ? 'Red' : (typeof CL_GYMS !== 'undefined' ? CL_GYMS[gymId]?.name : 'Gym ' + (gymId+1))}`, 2000);
 }
 
 function renderEggUI() {
@@ -2866,6 +2881,7 @@ function buildSaveData(slotName) {
     lockedPokemon: gameState.lockedPokemon || [],
     megaStoneInstances: gameState.megaStoneInstances || {},
     breedingSlots: gameState.breedingSlots || [],
+    cl: gameState.cl || null,
   };
 }
 

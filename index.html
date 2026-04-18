@@ -126,6 +126,9 @@
           <button class="btn" onclick="switchNextPokemon()">➡ NEXT PKM</button>
         </div>
         <div style="margin-top:6px">
+          <button class="btn" onclick="openCLOverlay()" style="border-color:#ffd700;color:#ffd700;width:100%;background:linear-gradient(135deg,rgba(255,215,0,0.12),rgba(255,140,0,0.06));letter-spacing:1px">🏆 Champion's League</button>
+        </div>
+        <div style="margin-top:6px">
           <button class="btn" onclick="openTradeOverlay()" style="border-color:#00c853;color:#69f0ae;width:100%">🔄 Trade</button>
         </div>
         <div style="margin-top:6px">
@@ -436,6 +439,23 @@
       <button onclick="debugFastHatch()" style="width:100%;background:rgba(244,143,177,0.12);border:1px solid #f48fb1;color:#f48fb1;padding:8px 14px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:17px">⚡ Fast Hatch All Eggs</button>
       <div style="font-size:12px;color:#8888bb;margin-top:4px;text-align:center">Instantly makes all active breeding eggs claimable</div>
     </div>
+
+    <!-- CL REMATCH -->
+    <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;margin-top:4px">
+      <div style="color:#ffd700;font-size:16px;margin-bottom:8px">🏆 Champion's League Rematch</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <button onclick="debugCLRematch(0)" style="background:rgba(184,160,56,0.12);border:1px solid #B8A038;color:#B8A038;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🪨 Brock (Gym 1)</button>
+        <button onclick="debugCLRematch(1)" style="background:rgba(104,144,240,0.12);border:1px solid #6890F0;color:#6890F0;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">💧 Misty (Gym 2)</button>
+        <button onclick="debugCLRematch(2)" style="background:rgba(248,208,48,0.12);border:1px solid #F8D030;color:#F8D030;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">⚡ Lt. Surge (Gym 3)</button>
+        <button onclick="debugCLRematch(3)" style="background:rgba(120,200,80,0.12);border:1px solid #78C850;color:#78C850;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🌿 Erika (Gym 4)</button>
+        <button onclick="debugCLRematch(4)" style="background:rgba(160,64,160,0.12);border:1px solid #A040A0;color:#A040A0;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">☠️ Koga (Gym 5)</button>
+        <button onclick="debugCLRematch(5)" style="background:rgba(248,88,136,0.12);border:1px solid #F85888;color:#F85888;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🔮 Sabrina (Gym 6)</button>
+        <button onclick="debugCLRematch(6)" style="background:rgba(240,128,48,0.12);border:1px solid #F08030;color:#F08030;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🔥 Blaine (Gym 7)</button>
+        <button onclick="debugCLRematch(7)" style="background:rgba(224,192,104,0.12);border:1px solid #E0C068;color:#E0C068;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🌍 Giovanni (Gym 8)</button>
+        <button onclick="debugCLRematch('red')" style="background:rgba(255,68,68,0.12);border:1px solid #ff4444;color:#ff4444;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:16px">🏅 Red (Secret Boss)</button>
+      </div>
+      <div style="font-size:12px;color:#8888bb;margin-top:4px;text-align:center">Opens CL overlay directly at the gym leader fight</div>
+    </div>
   </div>
 </div>
 
@@ -499,6 +519,14 @@
   </div>
 </div>
 
+<!-- CHAMPION'S LEAGUE OVERLAY -->
+<div id="cl-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:800;align-items:flex-start;justify-content:center;overflow-y:auto;padding:16px 8px">
+  <div style="background:#1a1a35;border:2px solid #ffd700;border-radius:14px;padding:22px 20px;width:100%;max-width:540px;position:relative;font-family:'VT323',monospace;margin:auto;box-shadow:0 0 50px rgba(255,215,0,0.2)">
+    <button onclick="closeCLOverlay()" style="position:absolute;top:10px;right:12px;background:none;border:none;color:var(--text2);font-size:24px;cursor:pointer;line-height:1">✕</button>
+    <div id="cl-content"></div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -506,5 +534,6 @@
 <script src="engine.js"></script>
 <script src="ui.js"></script>
 <script src="bosses.js"></script>
+<script src="cl.js"></script>
 </body>
 </html>

@@ -134,6 +134,7 @@ function loadSaveSlotFromPicker(slotIdx) {
     gameState.lockedPokemon = s.lockedPokemon || [];
     gameState.megaStoneInstances = s.megaStoneInstances || {};
     gameState.breedingSlots = s.breedingSlots || [];
+    gameState.cl = s.cl || null;
 
     // Boss/Legendary team cap: keep first 3, move rest to box
     { let bc = 0; const keep = [], toBox = [];
@@ -245,7 +246,9 @@ async function spawnEnemy() {
 
   const baseLevel = Math.min(250, Math.max(1, Math.floor(gameState.wave * 0.8 + 2)));
   const level = Math.max(1, baseLevel + Math.floor((Math.random()-0.5)*4));
-  const isShiny = Math.random() < 1/512;
+  const clShinyBonus = typeof getCLShinyBonus === 'function' ? getCLShinyBonus() : 0;
+  // Shiny bonus is a multiplier on the base rate (not additive), so +5% means ×1.5 on base 1/512
+  const isShiny = Math.random() < (1/512 * (1 + clShinyBonus));
 
   const enemy = newPokemonEntry(chosen.id, chosen.name, chosen.types, level, isShiny, true);
   enemy.stats = await fetchPokemonStats(chosen.id);
@@ -392,8 +395,10 @@ function enemyDefeated(player) {
     toast(`✨ Wild Shiny ${caught.name} caught!`, 4000);
     addLog(`✨ Caught wild Shiny ${caught.name}!`, 'log-shiny');
   }
-  const goldGain = Math.floor(currentEnemy.level * 3 + Math.random() * currentEnemy.level * 2 + 5);
-  const gemGain = Math.random() < 0.15 ? 1 : 0;
+  const clGoldMult = typeof getCLGoldMult === 'function' ? getCLGoldMult() : 1;
+  const clGemBonus = typeof getCLGemBonus === 'function' ? getCLGemBonus() : 0;
+  const goldGain = Math.floor((currentEnemy.level * 3 + Math.random() * currentEnemy.level * 2 + 5) * clGoldMult);
+  const gemGain = Math.random() < (0.15 + clGemBonus) ? 1 : 0;
   gameState.gold += goldGain;
   if(gemGain) { gameState.gems += gemGain; toast('💎 Found a Gem!'); }
   gameState.wins++;
@@ -445,6 +450,8 @@ function enemyDefeated(player) {
   let expGain = Math.floor(currentEnemy.level * 15 + Math.random() * 20 + 10);
   const item = getItemByEquipId(gameState.equippedItems[player.uid]);
   if(item?.effect === 'lucky_egg') expGain = Math.floor(expGain * 2.0);
+  const clExpMult = typeof getCLExpMult === 'function' ? getCLExpMult() : 1;
+  if(clExpMult > 1) expGain = Math.floor(expGain * clExpMult);
   giveExp(player, expGain);
   addLog(`+${goldGain} gold, +${expGain} EXP`, 'log-exp');
 
