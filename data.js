@@ -575,6 +575,7 @@ async function doRedeem() {
       'GOINGBEYOND': 4444,
       'EVOLUTIONSPEAK': 'gems_500_new',
       'BROKENSTONES': 'gold_5m_new',
+      'CHAMPION': 2500,
     };
 
     let codeMap = FALLBACK_CODES;

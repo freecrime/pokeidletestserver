@@ -8,29 +8,136 @@ function getTypeEffectiveness(mt,dt){let m=1;for(const t of dt){const v=(TYPE_CH
 function effectLabel(m){if(m===0)return{text:"No effect!",color:"#888"};if(m>=4)return{text:"Super effective!! ×4",color:"#ff4444"};if(m>=2)return{text:"Super effective! ×2",color:"#ff9e40"};if(m<=0.25)return{text:"Not very effective… ×¼",color:"#4fc3f7"};if(m<1)return{text:"Not very effective… ×½",color:"#4fc3f7"};return null;}
 
 const CL_MOVE_DB={
-"Tackle":{power:40,cat:"physical",type:"normal",pp:35},"Body Slam":{power:85,cat:"physical",type:"normal",pp:15},"Hyper Voice":{power:90,cat:"special",type:"normal",pp:10},"Double-Edge":{power:120,cat:"physical",type:"normal",pp:15,recoil:0.33},"Swift":{power:60,cat:"special",type:"normal",pp:20},"Quick Attack":{power:40,cat:"physical",type:"normal",pp:30},"Mega Kick":{power:120,cat:"physical",type:"normal",pp:5},"Hyper Beam":{power:150,cat:"special",type:"normal",pp:5},"Stomp":{power:65,cat:"physical",type:"normal",pp:20},"Horn Attack":{power:65,cat:"physical",type:"normal",pp:25},"Sonic Boom":{power:20,cat:"special",type:"normal",pp:20},"Bind":{power:15,cat:"physical",type:"normal",pp:20},"Explosion":{power:250,cat:"physical",type:"normal",pp:5,selfKO:true},"Self-Destruct":{power:200,cat:"physical",type:"normal",pp:5,selfKO:true},
-"Ember":{power:40,cat:"special",type:"fire",pp:25},"Flamethrower":{power:90,cat:"special",type:"fire",pp:15},"Fire Blast":{power:110,cat:"special",type:"fire",pp:5},"Fire Punch":{power:75,cat:"physical",type:"fire",pp:15},"Flare Blitz":{power:120,cat:"physical",type:"fire",pp:15,recoil:0.33},"Overheat":{power:130,cat:"special",type:"fire",pp:5},"Fire Spin":{power:35,cat:"special",type:"fire",pp:15},
-"Water Gun":{power:40,cat:"special",type:"water",pp:25},"Surf":{power:90,cat:"special",type:"water",pp:15},"Hydro Pump":{power:110,cat:"special",type:"water",pp:5},"Waterfall":{power:80,cat:"physical",type:"water",pp:15},"Bubble Beam":{power:65,cat:"special",type:"water",pp:20},
-"Vine Whip":{power:45,cat:"physical",type:"grass",pp:25},"Razor Leaf":{power:55,cat:"physical",type:"grass",pp:25},"Energy Ball":{power:90,cat:"special",type:"grass",pp:10},"Solar Beam":{power:120,cat:"special",type:"grass",pp:10},"Petal Blizzard":{power:90,cat:"physical",type:"grass",pp:15},"Leaf Blade":{power:90,cat:"physical",type:"grass",pp:15},
-"Thundershock":{power:40,cat:"special",type:"electric",pp:30},"Thunderbolt":{power:90,cat:"special",type:"electric",pp:15},"Thunder":{power:110,cat:"special",type:"electric",pp:10},"Wild Charge":{power:90,cat:"physical",type:"electric",pp:15,recoil:0.25},"Volt Tackle":{power:120,cat:"physical",type:"electric",pp:15,recoil:0.33},"Discharge":{power:80,cat:"special",type:"electric",pp:15},"Thunder Wave":{power:0,cat:"status",type:"electric",pp:20,effect:"paralyze"},
-"Ice Shard":{power:40,cat:"physical",type:"ice",pp:30},"Ice Beam":{power:90,cat:"special",type:"ice",pp:10},"Blizzard":{power:110,cat:"special",type:"ice",pp:5},"Ice Punch":{power:75,cat:"physical",type:"ice",pp:15},
-"Karate Chop":{power:50,cat:"physical",type:"fighting",pp:25},"Close Combat":{power:120,cat:"physical",type:"fighting",pp:5},"Brick Break":{power:75,cat:"physical",type:"fighting",pp:15},"Aura Sphere":{power:80,cat:"special",type:"fighting",pp:20},
-"Poison Jab":{power:80,cat:"physical",type:"poison",pp:20},"Sludge Bomb":{power:90,cat:"special",type:"poison",pp:10},"Gunk Shot":{power:120,cat:"physical",type:"poison",pp:5},"Sludge Wave":{power:95,cat:"special",type:"poison",pp:10},"Acid":{power:40,cat:"special",type:"poison",pp:30},"Toxic":{power:0,cat:"status",type:"poison",pp:10,effect:"toxic"},
-"Earthquake":{power:100,cat:"physical",type:"ground",pp:10},"Earth Power":{power:90,cat:"special",type:"ground",pp:10},"Magnitude":{power:70,cat:"physical",type:"ground",pp:30},"Sand Attack":{power:0,cat:"status",type:"ground",pp:15,effect:"lower_acc"},
-"Brave Bird":{power:120,cat:"physical",type:"flying",pp:15,recoil:0.33},"Air Slash":{power:75,cat:"special",type:"flying",pp:15},"Aerial Ace":{power:60,cat:"physical",type:"flying",pp:20},"Hurricane":{power:110,cat:"special",type:"flying",pp:10},"Sky Attack":{power:140,cat:"physical",type:"flying",pp:5},
-"Psychic":{power:90,cat:"special",type:"psychic",pp:10},"Psybeam":{power:65,cat:"special",type:"psychic",pp:20},"Zen Headbutt":{power:80,cat:"physical",type:"psychic",pp:15},"Future Sight":{power:120,cat:"special",type:"psychic",pp:10},"Psystrike":{power:100,cat:"special",type:"psychic",pp:10},"Aura Storm":{power:150,cat:"special",type:"psychic",pp:5},"Psycho Cut":{power:70,cat:"physical",type:"psychic",pp:20},
-"Bug Buzz":{power:90,cat:"special",type:"bug",pp:10},"X-Scissor":{power:80,cat:"physical",type:"bug",pp:15},"Signal Beam":{power:75,cat:"special",type:"bug",pp:15},"Megahorn":{power:120,cat:"physical",type:"bug",pp:10},"String Shot":{power:0,cat:"status",type:"bug",pp:40,effect:"lower_spd"},
-"Rock Throw":{power:50,cat:"physical",type:"rock",pp:15},"Rock Slide":{power:75,cat:"physical",type:"rock",pp:10},"Stone Edge":{power:100,cat:"physical",type:"rock",pp:5},"Power Gem":{power:80,cat:"special",type:"rock",pp:20},"Rock Blast":{power:25,cat:"physical",type:"rock",pp:10},
-"Shadow Ball":{power:80,cat:"special",type:"ghost",pp:15},"Shadow Claw":{power:70,cat:"physical",type:"ghost",pp:15},"Lick":{power:30,cat:"physical",type:"ghost",pp:30},
-"Dragon Claw":{power:80,cat:"physical",type:"dragon",pp:15},"Draco Meteor":{power:130,cat:"special",type:"dragon",pp:5},"Outrage":{power:120,cat:"physical",type:"dragon",pp:10},"Dragon Rage":{power:40,cat:"special",type:"dragon",pp:10},"Dragon Breath":{power:60,cat:"special",type:"dragon",pp:20},
-"Crunch":{power:80,cat:"physical",type:"dark",pp:15},"Dark Pulse":{power:80,cat:"special",type:"dark",pp:15},"Foul Play":{power:95,cat:"physical",type:"dark",pp:15},
-"Iron Head":{power:80,cat:"physical",type:"steel",pp:15},"Flash Cannon":{power:80,cat:"special",type:"steel",pp:10},"Meteor Mash":{power:90,cat:"physical",type:"steel",pp:10},
-"Moonblast":{power:95,cat:"special",type:"fairy",pp:10},"Play Rough":{power:90,cat:"physical",type:"fairy",pp:10},"Dazzling Gleam":{power:80,cat:"special",type:"fairy",pp:10},
-"Recover":{power:0,cat:"status",type:"normal",pp:10,effect:"heal"},"Softboiled":{power:0,cat:"status",type:"normal",pp:10,effect:"heal"},"Roost":{power:0,cat:"status",type:"flying",pp:10,effect:"heal"},
-"Harden":{power:0,cat:"status",type:"normal",pp:30,effect:"boost_def"},"Defense Curl":{power:0,cat:"status",type:"normal",pp:40,effect:"boost_def"},"Screech":{power:0,cat:"status",type:"normal",pp:40,effect:"lower_def"},"Agility":{power:0,cat:"status",type:"psychic",pp:30,effect:"boost_spd"},"Calm Mind":{power:0,cat:"status",type:"psychic",pp:20,effect:"boost_spa"},"Nasty Plot":{power:0,cat:"status",type:"dark",pp:20,effect:"boost_spa2"},"Swords Dance":{power:0,cat:"status",type:"normal",pp:20,effect:"boost_atk2"},"Smokescreen":{power:0,cat:"status",type:"normal",pp:20,effect:"lower_acc"},"Minimize":{power:0,cat:"status",type:"normal",pp:10,effect:"boost_eva"},"Sleep Powder":{power:0,cat:"status",type:"grass",pp:15,effect:"sleep"},"Stun Spore":{power:0,cat:"status",type:"grass",pp:30,effect:"paralyze"},"Disable":{power:0,cat:"status",type:"normal",pp:20},"Scary Face":{power:0,cat:"status",type:"normal",pp:10,effect:"lower_spd"},"Tail Whip":{power:0,cat:"status",type:"normal",pp:30,effect:"lower_def"},"Mud Sport":{power:0,cat:"status",type:"ground",pp:15},"Sunny Day":{power:0,cat:"status",type:"fire",pp:5},"Iron Tail":{power:100,cat:"physical",type:"steel",pp:15},"Seismic Toss":{power:50,cat:"physical",type:"fighting",pp:20},"Horn Drill":{power:30,cat:"physical",type:"normal",pp:5},"Wrap":{power:15,cat:"physical",type:"normal",pp:20},"Curse":{power:0,cat:"status",type:"ghost",pp:10}
+"Tackle":{power:40,cat:"physical",type:"normal",pp:35},"Body Slam":{power:85,cat:"physical",type:"normal",pp:15},
+"Hyper Voice":{power:90,cat:"special",type:"normal",pp:10},"Double-Edge":{power:120,cat:"physical",type:"normal",pp:15,recoil:0.33},
+"Swift":{power:60,cat:"special",type:"normal",pp:20},"Quick Attack":{power:40,cat:"physical",type:"normal",pp:30},
+"Extreme Speed":{power:80,cat:"physical",type:"normal",pp:5},"Return":{power:102,cat:"physical",type:"normal",pp:20},
+"Facade":{power:70,cat:"physical",type:"normal",pp:20},"Tri Attack":{power:80,cat:"special",type:"normal",pp:10},
+"Boomburst":{power:140,cat:"special",type:"normal",pp:10},"Hyper Beam":{power:150,cat:"special",type:"normal",pp:5},
+"Stomp":{power:65,cat:"physical",type:"normal",pp:20},"Explosion":{power:250,cat:"physical",type:"normal",pp:5,selfKO:true},
+"Self-Destruct":{power:200,cat:"physical",type:"normal",pp:5,selfKO:true},"Giga Impact":{power:150,cat:"physical",type:"normal",pp:5},
+"Ember":{power:40,cat:"special",type:"fire",pp:25},"Flamethrower":{power:90,cat:"special",type:"fire",pp:15},
+"Fire Blast":{power:110,cat:"special",type:"fire",pp:5},"Fire Punch":{power:75,cat:"physical",type:"fire",pp:15},
+"Flare Blitz":{power:120,cat:"physical",type:"fire",pp:15,recoil:0.33},"Overheat":{power:130,cat:"special",type:"fire",pp:5},
+"Heat Wave":{power:95,cat:"special",type:"fire",pp:10},"Sacred Fire":{power:100,cat:"physical",type:"fire",pp:5},
+"Eruption":{power:150,cat:"special",type:"fire",pp:5},"Mystical Fire":{power:75,cat:"special",type:"fire",pp:10},
+"Water Gun":{power:40,cat:"special",type:"water",pp:25},"Surf":{power:90,cat:"special",type:"water",pp:15},
+"Hydro Pump":{power:110,cat:"special",type:"water",pp:5},"Waterfall":{power:80,cat:"physical",type:"water",pp:15},
+"Bubble Beam":{power:65,cat:"special",type:"water",pp:20},"Aqua Jet":{power:40,cat:"physical",type:"water",pp:20},
+"Aqua Tail":{power:90,cat:"physical",type:"water",pp:10},"Scald":{power:80,cat:"special",type:"water",pp:15},
+"Water Spout":{power:150,cat:"special",type:"water",pp:5},"Liquidation":{power:85,cat:"physical",type:"water",pp:10},
+"Wave Crash":{power:120,cat:"physical",type:"water",pp:10,recoil:0.33},"Origin Pulse":{power:110,cat:"special",type:"water",pp:10},
+"Vine Whip":{power:45,cat:"physical",type:"grass",pp:25},"Razor Leaf":{power:55,cat:"physical",type:"grass",pp:25},
+"Energy Ball":{power:90,cat:"special",type:"grass",pp:10},"Solar Beam":{power:120,cat:"special",type:"grass",pp:10},
+"Petal Blizzard":{power:90,cat:"physical",type:"grass",pp:15},"Leaf Blade":{power:90,cat:"physical",type:"grass",pp:15},
+"Giga Drain":{power:75,cat:"special",type:"grass",pp:10},"Seed Flare":{power:120,cat:"special",type:"grass",pp:5},
+"Power Whip":{power:120,cat:"physical",type:"grass",pp:10},"Frenzy Plant":{power:150,cat:"special",type:"grass",pp:5},
+"Wood Hammer":{power:120,cat:"physical",type:"grass",pp:15,recoil:0.33},"Bullet Seed":{power:25,cat:"physical",type:"grass",pp:30},
+"Thundershock":{power:40,cat:"special",type:"electric",pp:30},"Thunderbolt":{power:90,cat:"special",type:"electric",pp:15},
+"Thunder":{power:110,cat:"special",type:"electric",pp:10},"Wild Charge":{power:90,cat:"physical",type:"electric",pp:15,recoil:0.25},
+"Volt Tackle":{power:120,cat:"physical",type:"electric",pp:15,recoil:0.33},"Discharge":{power:80,cat:"special",type:"electric",pp:15},
+"Bolt Strike":{power:130,cat:"physical",type:"electric",pp:5,recoil:0.33},"Fusion Bolt":{power:100,cat:"physical",type:"electric",pp:5},
+"Zap Cannon":{power:120,cat:"special",type:"electric",pp:5},"Spark":{power:65,cat:"physical",type:"electric",pp:20},
+"Thunder Wave":{power:0,cat:"status",type:"electric",pp:20,effect:"paralyze"},
+"Ice Shard":{power:40,cat:"physical",type:"ice",pp:30},"Ice Beam":{power:90,cat:"special",type:"ice",pp:10},
+"Blizzard":{power:110,cat:"special",type:"ice",pp:5},"Ice Punch":{power:75,cat:"physical",type:"ice",pp:15},
+"Icicle Crash":{power:85,cat:"physical",type:"ice",pp:10},"Freeze-Dry":{power:70,cat:"special",type:"ice",pp:20},
+"Aurora Beam":{power:65,cat:"special",type:"ice",pp:20},"Ice Fang":{power:65,cat:"physical",type:"ice",pp:15},
+"Glaciate":{power:65,cat:"special",type:"ice",pp:10},
+"Karate Chop":{power:50,cat:"physical",type:"fighting",pp:25},"Close Combat":{power:120,cat:"physical",type:"fighting",pp:5},
+"Brick Break":{power:75,cat:"physical",type:"fighting",pp:15},"Aura Sphere":{power:80,cat:"special",type:"fighting",pp:20},
+"Focus Blast":{power:120,cat:"special",type:"fighting",pp:5},"Superpower":{power:120,cat:"physical",type:"fighting",pp:5},
+"Cross Chop":{power:100,cat:"physical",type:"fighting",pp:5},"Drain Punch":{power:75,cat:"physical",type:"fighting",pp:10},
+"Mach Punch":{power:40,cat:"physical",type:"fighting",pp:30},"Seismic Toss":{power:50,cat:"physical",type:"fighting",pp:20},
+"Dynamic Punch":{power:100,cat:"physical",type:"fighting",pp:5},"Sky Uppercut":{power:85,cat:"physical",type:"fighting",pp:15},
+"Poison Jab":{power:80,cat:"physical",type:"poison",pp:20},"Sludge Bomb":{power:90,cat:"special",type:"poison",pp:10},
+"Gunk Shot":{power:120,cat:"physical",type:"poison",pp:5},"Sludge Wave":{power:95,cat:"special",type:"poison",pp:10},
+"Acid":{power:40,cat:"special",type:"poison",pp:30},"Cross Poison":{power:70,cat:"physical",type:"poison",pp:20},
+"Venoshock":{power:65,cat:"special",type:"poison",pp:10},"Toxic":{power:0,cat:"status",type:"poison",pp:10,effect:"toxic"},
+"Earthquake":{power:100,cat:"physical",type:"ground",pp:10},"Earth Power":{power:90,cat:"special",type:"ground",pp:10},
+"Magnitude":{power:70,cat:"physical",type:"ground",pp:30},"Precipice Blades":{power:120,cat:"physical",type:"ground",pp:10},
+"High Horsepower":{power:95,cat:"physical",type:"ground",pp:10},"Stomping Tantrum":{power:75,cat:"physical",type:"ground",pp:10},
+"Mud Shot":{power:55,cat:"special",type:"ground",pp:15},"Sand Attack":{power:0,cat:"status",type:"ground",pp:15,effect:"lower_acc"},
+"Brave Bird":{power:120,cat:"physical",type:"flying",pp:15,recoil:0.33},"Air Slash":{power:75,cat:"special",type:"flying",pp:15},
+"Aerial Ace":{power:60,cat:"physical",type:"flying",pp:20},"Hurricane":{power:110,cat:"special",type:"flying",pp:10},
+"Sky Attack":{power:140,cat:"physical",type:"flying",pp:5},"Acrobatics":{power:110,cat:"physical",type:"flying",pp:15},
+"Wing Attack":{power:60,cat:"physical",type:"flying",pp:35},"Drill Peck":{power:80,cat:"physical",type:"flying",pp:20},
+"Gust":{power:40,cat:"special",type:"flying",pp:35},
+"Psychic":{power:90,cat:"special",type:"psychic",pp:10},"Psybeam":{power:65,cat:"special",type:"psychic",pp:20},
+"Zen Headbutt":{power:80,cat:"physical",type:"psychic",pp:15},"Future Sight":{power:120,cat:"special",type:"psychic",pp:10},
+"Psystrike":{power:100,cat:"special",type:"psychic",pp:10},"Aura Storm":{power:150,cat:"special",type:"psychic",pp:5},
+"Psycho Cut":{power:70,cat:"physical",type:"psychic",pp:20},"Extrasensory":{power:80,cat:"special",type:"psychic",pp:20},
+"Expanding Force":{power:80,cat:"special",type:"psychic",pp:10},"Psycho Boost":{power:140,cat:"special",type:"psychic",pp:5},
+"Confusion":{power:50,cat:"special",type:"psychic",pp:25},
+"Bug Buzz":{power:90,cat:"special",type:"bug",pp:10},"X-Scissor":{power:80,cat:"physical",type:"bug",pp:15},
+"Megahorn":{power:120,cat:"physical",type:"bug",pp:10},"Signal Beam":{power:75,cat:"special",type:"bug",pp:15},
+"U-turn":{power:70,cat:"physical",type:"bug",pp:20},"First Impression":{power:90,cat:"physical",type:"bug",pp:10},
+"Leech Life":{power:80,cat:"physical",type:"bug",pp:10},"Lunge":{power:80,cat:"physical",type:"bug",pp:15},
+"String Shot":{power:0,cat:"status",type:"bug",pp:40,effect:"lower_spd"},
+"Rock Throw":{power:50,cat:"physical",type:"rock",pp:15},"Rock Slide":{power:75,cat:"physical",type:"rock",pp:10},
+"Stone Edge":{power:100,cat:"physical",type:"rock",pp:5},"Power Gem":{power:80,cat:"special",type:"rock",pp:20},
+"Rock Blast":{power:25,cat:"physical",type:"rock",pp:10},"Head Smash":{power:150,cat:"physical",type:"rock",pp:5,recoil:0.5},
+"Diamond Storm":{power:100,cat:"physical",type:"rock",pp:5},"Ancient Power":{power:60,cat:"special",type:"rock",pp:5},
+"Shadow Ball":{power:80,cat:"special",type:"ghost",pp:15},"Shadow Claw":{power:70,cat:"physical",type:"ghost",pp:15},
+"Lick":{power:30,cat:"physical",type:"ghost",pp:30},"Hex":{power:65,cat:"special",type:"ghost",pp:10},
+"Phantom Force":{power:90,cat:"physical",type:"ghost",pp:10},"Shadow Force":{power:120,cat:"physical",type:"ghost",pp:5},
+"Poltergeist":{power:110,cat:"physical",type:"ghost",pp:5},"Spectral Thief":{power:90,cat:"physical",type:"ghost",pp:10},
+"Curse":{power:0,cat:"status",type:"ghost",pp:10},
+"Dragon Claw":{power:80,cat:"physical",type:"dragon",pp:15},"Draco Meteor":{power:130,cat:"special",type:"dragon",pp:5},
+"Outrage":{power:120,cat:"physical",type:"dragon",pp:10},"Dragon Rage":{power:40,cat:"special",type:"dragon",pp:10},
+"Dragon Breath":{power:60,cat:"special",type:"dragon",pp:20},"Dragon Rush":{power:100,cat:"physical",type:"dragon",pp:10},
+"Spacial Rend":{power:100,cat:"special",type:"dragon",pp:5},"Dragon Pulse":{power:85,cat:"special",type:"dragon",pp:10},
+"Clanging Scales":{power:110,cat:"special",type:"dragon",pp:5},"Roar of Time":{power:150,cat:"special",type:"dragon",pp:5},
+"Crunch":{power:80,cat:"physical",type:"dark",pp:15},"Dark Pulse":{power:80,cat:"special",type:"dark",pp:15},
+"Foul Play":{power:95,cat:"physical",type:"dark",pp:15},"Knock Off":{power:65,cat:"physical",type:"dark",pp:20},
+"Night Slash":{power:70,cat:"physical",type:"dark",pp:15},"Sucker Punch":{power:70,cat:"physical",type:"dark",pp:5},
+"Darkest Lariat":{power:85,cat:"physical",type:"dark",pp:10},"Wicked Blow":{power:80,cat:"physical",type:"dark",pp:5},
+"Throat Chop":{power:80,cat:"physical",type:"dark",pp:15},"Night Daze":{power:85,cat:"special",type:"dark",pp:10},
+"Iron Head":{power:80,cat:"physical",type:"steel",pp:15},"Flash Cannon":{power:80,cat:"special",type:"steel",pp:10},
+"Meteor Mash":{power:90,cat:"physical",type:"steel",pp:10},"Iron Tail":{power:100,cat:"physical",type:"steel",pp:15},
+"Steel Wing":{power:70,cat:"physical",type:"steel",pp:25},"Sunsteel Strike":{power:100,cat:"physical",type:"steel",pp:5},
+"Smart Strike":{power:70,cat:"physical",type:"steel",pp:10},"Doom Desire":{power:140,cat:"special",type:"steel",pp:5},
+"Heavy Slam":{power:80,cat:"physical",type:"steel",pp:10},"Gyro Ball":{power:80,cat:"physical",type:"steel",pp:5},
+"Moonblast":{power:95,cat:"special",type:"fairy",pp:10},"Play Rough":{power:90,cat:"physical",type:"fairy",pp:10},
+"Dazzling Gleam":{power:80,cat:"special",type:"fairy",pp:10},"Fairy Wind":{power:40,cat:"special",type:"fairy",pp:30},
+"Moongeist Beam":{power:100,cat:"special",type:"fairy",pp:5},"Spirit Break":{power:75,cat:"physical",type:"fairy",pp:15},
+"Fleur Cannon":{power:130,cat:"special",type:"fairy",pp:5},"Sparkly Swirl":{power:90,cat:"special",type:"fairy",pp:5},
+"Misty Explosion":{power:100,cat:"special",type:"fairy",pp:5,selfKO:true},
+"Recover":{power:0,cat:"status",type:"normal",pp:10,effect:"heal"},"Softboiled":{power:0,cat:"status",type:"normal",pp:10,effect:"heal"},
+"Roost":{power:0,cat:"status",type:"flying",pp:10,effect:"heal"},
+"Harden":{power:0,cat:"status",type:"normal",pp:30,effect:"boost_def"},"Defense Curl":{power:0,cat:"status",type:"normal",pp:40,effect:"boost_def"},
+"Screech":{power:0,cat:"status",type:"normal",pp:40,effect:"lower_def"},"Agility":{power:0,cat:"status",type:"psychic",pp:30,effect:"boost_spd"},
+"Calm Mind":{power:0,cat:"status",type:"psychic",pp:20,effect:"boost_spa"},"Nasty Plot":{power:0,cat:"status",type:"dark",pp:20,effect:"boost_spa2"},
+"Swords Dance":{power:0,cat:"status",type:"normal",pp:20,effect:"boost_atk2"},"Smokescreen":{power:0,cat:"status",type:"normal",pp:20,effect:"lower_acc"},
+"Sleep Powder":{power:0,cat:"status",type:"grass",pp:15,effect:"sleep"},"Stun Spore":{power:0,cat:"status",type:"grass",pp:30,effect:"paralyze"},
+"Scary Face":{power:0,cat:"status",type:"normal",pp:10,effect:"lower_spd"},"Tail Whip":{power:0,cat:"status",type:"normal",pp:30,effect:"lower_def"},
+"Minimize":{power:0,cat:"status",type:"normal",pp:10,effect:"boost_eva"},"Disable":{power:0,cat:"status",type:"normal",pp:20},
+"Mud Sport":{power:0,cat:"status",type:"ground",pp:15},"Sunny Day":{power:0,cat:"status",type:"fire",pp:5},
+"Horn Drill":{power:30,cat:"physical",type:"normal",pp:5},"Wrap":{power:15,cat:"physical",type:"normal",pp:20},
+"Bind":{power:15,cat:"physical",type:"normal",pp:20},"Sonic Boom":{power:20,cat:"special",type:"normal",pp:20},
+"Mega Kick":{power:120,cat:"physical",type:"normal",pp:5},"Seismic Toss":{power:50,cat:"physical",type:"fighting",pp:20}
 };
 
-const CL_TYPE_MOVES={normal:["Body Slam","Hyper Voice","Double-Edge","Swift"],fire:["Flamethrower","Fire Blast","Fire Punch","Flare Blitz"],water:["Surf","Hydro Pump","Waterfall","Water Gun"],grass:["Leaf Blade","Energy Ball","Razor Leaf","Petal Blizzard"],electric:["Thunderbolt","Thunder","Wild Charge","Discharge"],ice:["Ice Beam","Blizzard","Ice Punch","Ice Shard"],fighting:["Close Combat","Aura Sphere","Brick Break","Karate Chop"],poison:["Sludge Bomb","Poison Jab","Gunk Shot","Acid"],ground:["Earthquake","Earth Power","Magnitude","Sand Attack"],flying:["Brave Bird","Air Slash","Aerial Ace","Hurricane"],psychic:["Psychic","Future Sight","Zen Headbutt","Psybeam"],bug:["Bug Buzz","X-Scissor","Signal Beam","Megahorn"],rock:["Stone Edge","Rock Slide","Power Gem","Rock Throw"],ghost:["Shadow Ball","Shadow Claw","Lick","Curse"],dragon:["Draco Meteor","Outrage","Dragon Claw","Dragon Rage"],dark:["Dark Pulse","Crunch","Foul Play","Bite"],steel:["Iron Head","Flash Cannon","Meteor Mash","Iron Tail"],fairy:["Moonblast","Play Rough","Dazzling Gleam","Dazzling Gleam"]};
+const CL_TYPE_MOVES={
+  normal:  ["Hyper Voice","Body Slam","Boomburst","Extreme Speed","Return","Facade","Tri Attack","Giga Impact","Double-Edge"],
+  fire:    ["Flamethrower","Fire Blast","Heat Wave","Sacred Fire","Eruption","Overheat","Fire Punch","Flare Blitz","Mystical Fire"],
+  water:   ["Surf","Hydro Pump","Scald","Origin Pulse","Water Spout","Aqua Tail","Waterfall","Liquidation","Wave Crash"],
+  grass:   ["Leaf Blade","Energy Ball","Seed Flare","Giga Drain","Frenzy Plant","Power Whip","Wood Hammer","Petal Blizzard","Solar Beam"],
+  electric:["Thunderbolt","Thunder","Bolt Strike","Discharge","Fusion Bolt","Wild Charge","Volt Tackle","Zap Cannon","Spark"],
+  ice:     ["Ice Beam","Blizzard","Icicle Crash","Freeze-Dry","Aurora Beam","Ice Punch","Ice Fang","Glaciate"],
+  fighting:["Close Combat","Aura Sphere","Superpower","Focus Blast","Cross Chop","Drain Punch","Dynamic Punch","Sky Uppercut","Mach Punch"],
+  poison:  ["Sludge Bomb","Poison Jab","Gunk Shot","Sludge Wave","Cross Poison","Venoshock","Acid"],
+  ground:  ["Earthquake","Earth Power","Precipice Blades","High Horsepower","Stomping Tantrum","Magnitude","Mud Shot"],
+  flying:  ["Brave Bird","Hurricane","Air Slash","Acrobatics","Sky Attack","Drill Peck","Aerial Ace","Wing Attack"],
+  psychic: ["Psychic","Future Sight","Psystrike","Psycho Boost","Extrasensory","Expanding Force","Zen Headbutt","Confusion"],
+  bug:     ["Bug Buzz","X-Scissor","Megahorn","U-turn","First Impression","Leech Life","Lunge","Signal Beam"],
+  rock:    ["Stone Edge","Rock Slide","Power Gem","Head Smash","Diamond Storm","Ancient Power","Rock Blast"],
+  ghost:   ["Shadow Ball","Shadow Claw","Phantom Force","Shadow Force","Poltergeist","Spectral Thief","Hex"],
+  dragon:  ["Draco Meteor","Outrage","Dragon Claw","Spacial Rend","Dragon Rush","Dragon Pulse","Clanging Scales","Roar of Time"],
+  dark:    ["Dark Pulse","Crunch","Foul Play","Wicked Blow","Darkest Lariat","Night Daze","Throat Chop","Knock Off","Night Slash"],
+  steel:   ["Iron Head","Flash Cannon","Meteor Mash","Sunsteel Strike","Doom Desire","Heavy Slam","Smart Strike","Gyro Ball"],
+  fairy:   ["Moonblast","Play Rough","Dazzling Gleam","Moongeist Beam","Fleur Cannon","Spirit Break","Sparkly Swirl"],
+};
 
 function getDefaultCLMoves(pk){const t=(pk.types&&pk.types[0])||"normal";const pool=CL_TYPE_MOVES[t]||CL_TYPE_MOVES["normal"];const t2=pk.types&&pk.types[1];const p2=t2?(CL_TYPE_MOVES[t2]||[]):[];const moves=[...pool.slice(0,3)];const b=p2.find(m=>!moves.includes(m));moves.push(b||pool[3]||"Tackle");return moves.slice(0,4);}
 
@@ -87,9 +194,29 @@ function renderCLLobby(){
   const redUnlocked=badges.includes(7);
   const badgeRow=[...allGyms,CL_RED].map(g=>{const bid=g.id==='red'?'red':g.id;const earned=badges.includes(bid);return`<span title="${g.badge}${earned?' ✓':''}" style="font-size:22px;opacity:${earned?1:0.2};filter:${earned?'':'grayscale(1)'};transition:all 0.3s">${g.badgeEmoji}</span>`;}).join('');
   const bonusList=badges.length>0?badges.map(bid=>{const g=bid==='red'?CL_RED:CL_GYMS[bid];if(!g)return'';return`<div style="display:flex;align-items:center;gap:5px;padding:4px 8px;background:rgba(255,255,255,0.04);border-radius:5px;margin-bottom:3px"><span>${g.badgeEmoji}</span><span style="color:#ffd700;font-size:13px">${g.boost.icon}</span><span style="font-size:13px;color:#a5d6a7">${g.boost.desc}${mult>1?' <b style="color:#ffd700">×2</b>':''}</span></div>`;}).join(''):'';
-  const gymCards=allGyms.map(g=>{const beaten=badges.includes(g.id);const prevOk=g.id===0||badges.includes(g.id-1);const locked=!prevOk;const lvLocked=!beaten&&!locked&&maxLv<g.minLevel;const clk=(locked||lvLocked)?'':'startCLGym('+g.id+')';const bc=beaten?g.color:locked||lvLocked?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.2)';return`<div onclick="${clk}" style="cursor:${(locked||lvLocked)?'not-allowed':'pointer'};background:linear-gradient(${g.bgGrad});border:2px solid ${bc};border-radius:10px;padding:10px 12px;margin-bottom:6px;opacity:${(locked||lvLocked)?0.4:1};transition:all 0.15s${beaten?';box-shadow:0 0 14px '+g.color+'55':''}"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:20px">${g.badgeEmoji}</span><div><span style="font-size:16px;color:${g.color}">${beaten?'✓ ':locked?'🔒 ':lvLocked?'📊 ':''}<b>${g.name}</b></span><span style="font-size:12px;color:var(--text2);margin-left:4px">${g.city}</span></div></div><div style="text-align:right"><div style="font-size:11px;color:var(--text2)">${g.badge}</div><div style="font-size:11px;color:${maxLv>=g.minLevel?'#66bb6a':'#ef5350'}">Min Lv.${g.minLevel}</div></div></div><div style="font-size:13px;color:var(--text2);margin-top:4px">${g.type.toUpperCase()} · ${g.boost.icon} <span style="color:#ffd700">${g.boost.desc}</span></div></div>`;}).join('');
+  const gymCards=allGyms.map(g=>{const beaten=badges.includes(g.id);const prevOk=g.id===0||badges.includes(g.id-1);const locked=!prevOk;const lvLocked=!beaten&&!locked&&maxLv<g.minLevel;const clk=(beaten||locked||lvLocked)?'':'startCLGym('+g.id+')';const bc=beaten?g.color:locked||lvLocked?'rgba(255,255,255,0.08)':'rgba(255,255,255,0.2)';return`<div onclick="${clk}" style="cursor:${(beaten||locked||lvLocked)?'default':'pointer'};background:linear-gradient(${g.bgGrad});border:2px solid ${bc};border-radius:10px;padding:10px 12px;margin-bottom:6px;opacity:${(locked||lvLocked)?0.4:1};transition:all 0.15s${beaten?';box-shadow:0 0 14px '+g.color+'55':''}"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;align-items:center;gap:6px"><span style="font-size:20px">${g.badgeEmoji}</span><div><span style="font-size:16px;color:${g.color}">${beaten?'✓ ':locked?'🔒 ':lvLocked?'📊 ':''}<b>${g.name}</b></span><span style="font-size:12px;color:var(--text2);margin-left:4px">${g.city}</span></div></div><div style="text-align:right"><div style="font-size:11px;color:var(--text2)">${g.badge}</div><div style="font-size:11px;color:${maxLv>=g.minLevel?'#66bb6a':'#ef5350'}">Min Lv.${g.minLevel}</div></div></div><div style="font-size:13px;color:var(--text2);margin-top:4px">${g.type.toUpperCase()} · ${g.boost.icon} <span style="color:#ffd700">${g.boost.desc}</span></div></div>`;}).join('');
   const redCard=redUnlocked?`<div onclick="${badges.includes('red')?'':'startCLRed()'}" style="cursor:${badges.includes('red')?'default':'pointer'};background:linear-gradient(${CL_RED.bgGrad});border:2px solid ${badges.includes('red')?CL_RED.color:'rgba(255,60,60,0.5)'};border-radius:10px;padding:12px;margin-top:6px${badges.includes('red')?';box-shadow:0 0 20px rgba(255,68,68,0.4)':''}"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-size:22px">🏅</span><span style="font-family:'Press Start 2P',monospace;font-size:9px;color:#ff4444;margin-left:8px">${badges.includes('red')?'✓ ':''}<b>??? RED</b></span><span style="font-size:12px;color:var(--text2);margin-left:6px">Mt. Silver · SECRET</span></div><div style="font-size:11px;color:#ff4444">Min Lv.250</div></div><div style="font-size:13px;color:#ff9e40;margin-top:4px">⚠️ The ultimate challenge.</div></div>`:'';
-  el.innerHTML=`<div style="font-family:'Press Start 2P';font-size:10px;background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 2s linear infinite;text-align:center;margin-bottom:6px">🏆 CHAMPION'S LEAGUE</div><div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:8px">Turn-based · 3 Pokémon · No legendaries/megas</div><div style="display:flex;justify-content:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.2);border-radius:8px;margin-bottom:10px">${badgeRow}</div>${badges.length>0?`<div style="margin-bottom:10px"><div style="font-family:'Press Start 2P';font-size:7px;color:#ffd700;margin-bottom:5px">🏅 ACTIVE BONUSES</div>${bonusList}</div>`:''}<div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-bottom:6px">GYM LEADERS</div>${gymCards}${redCard}`;
+  const redBeaten = badges.includes('red');
+  const sfUnlocked = redBeaten;
+  const sfHighscore = gameState.cl?.sfHighscore || 0;
+  const sfCard = sfUnlocked ? `<div onclick="startSimulatedFights()" style="cursor:pointer;background:linear-gradient(135deg,rgba(0,80,120,0.5),rgba(0,20,50,0.4));border:2px solid #00e5ff;border-radius:10px;padding:12px;margin-top:6px;transition:all 0.15s" onmouseover="this.style.boxShadow='0 0 18px rgba(0,229,255,0.4)'" onmouseout="this.style.boxShadow=''">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:22px">🌀</span>
+        <div>
+          <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#00e5ff">SIMULATED FIGHTS</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px">Endless · Heal after each win</div>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:#ffd700">${sfHighscore > 0 ? `🏆 Best: ${sfHighscore}` : 'No runs yet'}</div>
+        <div style="font-size:11px;color:var(--text2)">Every 5: Eternatus + 💎</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);margin-top:4px">⚡ Fight forever · Gems scale with streak · Dynamax bosses</div>
+  </div>` : '';
+
+  el.innerHTML = `<div style="font-family:'Press Start 2P';font-size:10px;background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 2s linear infinite;text-align:center;margin-bottom:6px">🏆 CHAMPION'S LEAGUE</div><div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:8px">Turn-based · 3 Pokémon · No legendaries/megas</div><div style="display:flex;justify-content:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.2);border-radius:8px;margin-bottom:10px">${badgeRow}</div>${badges.length>0?`<div style="margin-bottom:10px"><div style="font-family:'Press Start 2P';font-size:7px;color:#ffd700;margin-bottom:5px">🏅 ACTIVE BONUSES</div>${bonusList}</div>`:''}<div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-bottom:6px">GYM LEADERS</div>${gymCards}${redCard}${sfCard}`;
 }
 
 function startCLGym(gymId){initCLState();window._clTeamSel=[];window._clMoveSel={};window._clItemSel={};renderCLTeamSelect(gymId,false);}
@@ -114,7 +241,7 @@ function renderCLMoveSetup(gymId,isRed){
   team.forEach(pk=>{if(!window._clMoveSel[pk.uid])window._clMoveSel[pk.uid]=getDefaultCLMoves(pk);});
   const sections=team.map(pk=>{
     const t=pk.types[0]||"normal";const t2=pk.types[1];
-    const pool=[...new Set([...(CL_TYPE_MOVES[t]||[]),...(t2?CL_TYPE_MOVES[t2]||[]:[])])].slice(0,12);
+    const pool=[...new Set([...(CL_TYPE_MOVES[t]||[]),...(t2?CL_TYPE_MOVES[t2]||[]:[]),(window._clMoveSel[pk.uid]||[])])].flat().filter((v,i,a)=>a.indexOf(v)===i).slice(0,16);
     const chosen=window._clMoveSel[pk.uid];
     const moveBtns=pool.map(m=>{const md=CL_MOVE_DB[m]||{power:0,cat:'physical',type:'normal'};const isPicked=chosen.includes(m);const slot=chosen.indexOf(m);const catColor=md.cat==='special'?'#ce93d8':md.cat==='status'?'#4fc3f7':'#ffcc80';const catLabel=md.cat==='special'?'Sp':md.cat==='status'?'St':'Ph';const tc=TYPE_COLORS[md.type]||'#888';return`<button onclick="clToggleMove(${pk.uid},'${m}','${gymId}',${isRed})" style="padding:5px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:13px;text-align:left;background:rgba(255,255,255,${isPicked?'0.1':'0.03'});border:1px solid ${isPicked?'#ffd700':'rgba(255,255,255,0.12)'};transition:all 0.1s"><div style="display:flex;align-items:center;gap:3px;margin-bottom:1px"><span style="font-size:9px;padding:1px 3px;border-radius:2px;background:${tc};color:#fff">${md.type}</span><span style="color:${catColor};font-size:10px">${catLabel}</span>${isPicked?`<span style="color:#ffd700;margin-left:auto;font-size:10px">#${slot+1}</span>`:''}</div><div style="color:var(--text)">${m}</div>${md.power>0?`<div style="color:var(--gold);font-size:11px">${md.power}p</div>`:'<div style="color:#4fc3f7;font-size:11px">status</div>'}</button>`;}).join('');
     const itemOpts=ITEMS.map(it=>`<option value="${it.id}" ${(window._clItemSel[pk.uid]||'')=== it.id?'selected':''}>${it.emoji} ${it.name}</option>`).join('');
@@ -193,16 +320,27 @@ function clCalcDamage(attacker, move, defender) {
   A = Math.max(1, Math.floor(A * (aSt >= 0 ? (2 + aSt) / 2 : 2 / (2 - aSt))));
   D = Math.max(1, Math.floor(D * (dSt >= 0 ? (2 + dSt) / 2 : 2 / (2 - dSt))));
 
-  // Item boosts
-  if (attacker.item?.effect === 'choice_band' && !isSpec)  A = Math.floor(A * 1.5);
-  if (attacker.item?.effect === 'choice_specs' && isSpec)   A = Math.floor(A * 1.5);
-  if (attacker.item?.effect === 'atk_boost' && !isSpec)     A = Math.floor(A * (attacker.item.value || 1.3));
-  if (attacker.item?.effect === 'spatk_boost' && isSpec)    A = Math.floor(A * (attacker.item.value || 1.3));
-  if (attacker.item?.effect === 'life_orb')                 A = Math.floor(A * 1.3);
-  if (defender.item?.effect === 'def_boost' && !isSpec)     D = Math.floor(D * (defender.item.value || 1.35));
-  if (defender.item?.effect === 'spdef_boost' && isSpec)    D = Math.floor(D * (defender.item.value || 1.35));
-  if (defender.item?.effect === 'eviolite')                 D = Math.floor(D * 1.4);
-  if (defender.item?.effect === 'assault_vest' && isSpec)   D = Math.floor(D * 1.35);
+  // Item boosts — attacker
+  if (attacker.item?.effect === 'choice_band' && !isSpec)   A = Math.floor(A * 1.5);
+  if (attacker.item?.effect === 'choice_specs' && isSpec)    A = Math.floor(A * 1.5);
+  if (attacker.item?.effect === 'atk_boost' && !isSpec)      A = Math.floor(A * (attacker.item.value || 1.3));
+  if (attacker.item?.effect === 'spatk_boost' && isSpec)     A = Math.floor(A * (attacker.item.value || 1.3));
+  if (attacker.item?.effect === 'life_orb')                  A = Math.floor(A * 1.3);
+  if (attacker.item?.effect === 'rusted_sword' && !isSpec)   A = Math.floor(A * 1.5);
+  if (attacker.item?.effect === 'soul_dew' && isSpec)        A = Math.floor(A * 1.45);
+  if (attacker.item?.effect === 'mega_stone')                A = Math.floor(A * (attacker.item.value || 1.35));
+  if (attacker.item?.effect === 'prism_scale')               A = Math.floor(A * 1.3);
+  if (attacker.item?.effect === 'draco_plate' && attacker.types?.includes('dragon')) A = Math.floor(A * 1.5);
+  if (attacker.item?.effect === 'power_herb' && !isSpec)     A = Math.floor(A * 1.2);
+
+  // Item boosts — defender
+  if (defender.item?.effect === 'def_boost' && !isSpec)      D = Math.floor(D * (defender.item.value || 1.35));
+  if (defender.item?.effect === 'spdef_boost' && isSpec)     D = Math.floor(D * (defender.item.value || 1.35));
+  if (defender.item?.effect === 'eviolite')                  D = Math.floor(D * 1.4);
+  if (defender.item?.effect === 'assault_vest' && isSpec)    D = Math.floor(D * 1.35);
+  if (defender.item?.effect === 'mega_stone')                D = Math.floor(D * (defender.item.value || 1.35));
+  if (defender.item?.effect === 'prism_scale')               D = Math.floor(D * 1.2);
+  if (defender.item?.effect === 'iron_ball' && !isSpec)      D = Math.floor(D * 1.35);
 
   const typeMult = getTypeEffectiveness(move.type, defender.types);
   if (typeMult === 0) return { dmg: 0, typeMult: 0 };
@@ -217,7 +355,13 @@ function clGetSpd(pk) {
   const iv = pk.ivs?.['speed'] ?? 15;
   const raw = Math.floor(((base * 2 + iv) * pk.level / 100) + 5);
   const stage = pk.stages?.spe || 0;
-  return Math.max(1, Math.floor(raw * (stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage))));
+  let spd = Math.max(1, Math.floor(raw * (stage >= 0 ? (2 + stage) / 2 : 2 / (2 - stage))));
+  // Items that affect speed
+  if (pk.item?.effect === 'spd_boost') spd = Math.floor(spd * (pk.item.value || 1.3));
+  if (pk.item?.id === 'choice_scarf')   spd = Math.floor(spd * 1.5);
+  if (pk.item?.effect === 'power_herb') spd = Math.floor(spd * (pk.item.value || 1.35));
+  if (pk.status === 'paralyze')         spd = Math.floor(spd * 0.5);
+  return Math.max(1, spd);
 }
 
 // ── PP tracking: init pp on combatants ───────────────────────
@@ -234,7 +378,8 @@ function renderCLBattle() {
   const el = document.getElementById('cl-content');
   const b = window._clBattle;
   if (!b) return;
-  const gym = b.isRed ? CL_RED : CL_GYMS[b.gymId];
+  const SF_GYM_STUB = { color: '#00e5ff', badgeEmoji: '🌀', name: 'Simulated Fights' };
+  const gym = b.isSF ? SF_GYM_STUB : (b.isRed ? CL_RED : CL_GYMS[b.gymId]) || SF_GYM_STUB;
   const player = b.playerTeam[b.playerIdx];
   const enemy  = b.enemyTeam[b.enemyIdx];
 
@@ -440,7 +585,10 @@ function clAnimShake(isPlayer) {
 // ── Turn cooldown state ────────────────────────────────────────
 let _clInputCooldown = false;
 
-// ── Turn execution ─────────────────────────────────────────────
+// ── Async delay helper ────────────────────────────────────────
+function clDelay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Turn execution — fully sequential with delays ─────────────
 async function clPlayerMove(mi) {
   const b = window._clBattle;
   if (!b || !b.waitingForAction || _clInputCooldown) return;
@@ -452,46 +600,88 @@ async function clPlayerMove(mi) {
   const moveName = player.moves[mi];
   const move = CL_MOVE_DB[moveName] || { power: 40, cat: 'physical', type: 'normal', pp: 10 };
 
-  // Deduct PP
   if (!player.pp) clInitPP(player);
   if (player.pp[moveName] > 0) player.pp[moveName]--;
 
   clLog(`— Turn ${b.turn} —`, '#333');
+  renderCLBattle();
 
   const pSpd = clGetSpd(player);
   const eSpd = clGetSpd(enemy);
 
   if (pSpd >= eSpd) {
-    clExecMove(player, move, moveName, enemy, true);
-    if (enemy.currentHp > 0 && player.currentHp > 0) clEnemyTurn(player, enemy);
+    // Player goes first
+    await clExecMoveSeq(player, move, moveName, enemy, true);
+    renderCLBattle();
+    if (enemy.currentHp <= 0 || player.currentHp <= 0) { await clFinishTurn(player, enemy); return; }
+    await clDelay(400);
+    await clExecEnemySeq(player, enemy);
+    renderCLBattle();
   } else {
-    clEnemyTurn(player, enemy);
-    if (player.currentHp > 0 && enemy.currentHp > 0) clExecMove(player, move, moveName, enemy, true);
+    // Enemy goes first
+    await clExecEnemySeq(player, enemy);
+    renderCLBattle();
+    if (player.currentHp <= 0 || enemy.currentHp <= 0) { await clFinishTurn(player, enemy); return; }
+    await clDelay(400);
+    await clExecMoveSeq(player, move, moveName, enemy, true);
+    renderCLBattle();
   }
 
-  if (player.currentHp > 0) clTickStatus(player);
-  if (enemy.currentHp > 0)  clTickStatus(enemy);
+  await clDelay(200);
+  await clFinishTurn(player, enemy);
+}
 
+async function clFinishTurn(player, enemy) {
+  const b = window._clBattle;
+  // End-of-turn: status damage, leftovers
+  if (player.currentHp > 0) {
+    clTickStatus(player);
+    clApplyEndOfTurnItems(player);
+  }
+  if (enemy.currentHp > 0) {
+    clTickStatus(enemy);
+    clApplyEndOfTurnItems(enemy);
+  }
   b.turn++;
   renderCLBattle();
   await clCheckFaint();
-
-  // Release cooldown after a short delay so UI feels responsive but not spammable
-  setTimeout(() => { _clInputCooldown = false; }, 650);
+  setTimeout(() => { _clInputCooldown = false; }, 300);
 }
 
-function clEnemyTurn(player, enemy) {
+// Applies end-of-turn item effects (leftovers, etc.)
+function clApplyEndOfTurnItems(pk) {
+  if (!pk.item) return;
+  const aCol = pk.isPlayer ? '#80cbc4' : '#ef9a9a';
+  const lbl = `<b style="color:${aCol}">${pk.name}</b>`;
+  if (pk.item.effect === 'regen' || pk.item.id === 'leftovers') {
+    const h = Math.max(1, Math.floor(pk.maxHp / 16));
+    if (pk.currentHp < pk.maxHp) {
+      pk.currentHp = Math.min(pk.maxHp, pk.currentHp + h);
+      clLog(`${lbl} restored ${h} HP (Leftovers)!`, '#69f0ae');
+    }
+  }
+}
+
+async function clExecEnemySeq(player, enemy) {
   if (!enemy.pp) clInitPP(enemy);
   const usable = enemy.moves.filter(m => (enemy.pp[m] ?? (CL_MOVE_DB[m]?.pp || 10)) > 0);
   const pool = usable.length > 0 ? usable : enemy.moves;
+  // Smart AI: prefer super-effective moves against player types
   const dmgMoves = pool.filter(m => (CL_MOVE_DB[m]?.power || 0) > 0);
-  const chosen = (dmgMoves.length > 0 && Math.random() < 0.75) ? dmgMoves : pool;
+  let chosen;
+  if (dmgMoves.length > 0) {
+    const superEff = dmgMoves.filter(m => getTypeEffectiveness(CL_MOVE_DB[m]?.type || 'normal', player.types) >= 2);
+    if (superEff.length > 0 && Math.random() < 0.6) chosen = superEff;
+    else chosen = dmgMoves;
+  } else {
+    chosen = pool;
+  }
   const name = chosen[Math.floor(Math.random() * chosen.length)];
   if (enemy.pp[name] > 0) enemy.pp[name]--;
-  clExecMove(enemy, CL_MOVE_DB[name] || { power: 40, cat: 'physical', type: 'normal', pp: 10 }, name, player, false);
+  await clExecMoveSeq(enemy, CL_MOVE_DB[name] || { power: 40, cat: 'physical', type: 'normal', pp: 10 }, name, player, false);
 }
 
-function clExecMove(attacker, move, moveName, defender, isPlayer) {
+async function clExecMoveSeq(attacker, move, moveName, defender, isPlayer) {
   const aCol = isPlayer ? '#80cbc4' : '#ef9a9a';
   const dCol = isPlayer ? '#ef9a9a' : '#80cbc4';
   const aLbl = `<b style="color:${aCol}">${attacker.name}</b>`;
@@ -501,29 +691,32 @@ function clExecMove(attacker, move, moveName, defender, isPlayer) {
   if (attacker.status === 'sleep') {
     attacker.statusCounter--;
     if (attacker.statusCounter <= 0) { attacker.status = null; clLog(`${aLbl} woke up!`, '#fff9c4'); }
-    else { clLog(`${aLbl} is fast asleep…`, '#78909c'); return; }
+    else { clLog(`${aLbl} is fast asleep…`, '#78909c'); renderCLBattle(); return; }
   }
   // Paralysis
   if (attacker.status === 'paralyze' && Math.random() < 0.25) {
-    clLog(`${aLbl} is paralyzed! It can't move!`, '#f5c518'); return;
+    clLog(`${aLbl} is paralyzed! It can't move!`, '#f5c518'); renderCLBattle(); return;
   }
 
   clLog(`${aLbl} used <b>${moveName}</b>!`);
+  renderCLBattle();
 
   if (move.cat === 'status') { clApplyStatus(move, attacker, defender, aLbl, dLbl); return; }
   if (!move.power) return;
 
-  // Trigger attack animation
+  // Attack animation, then short pause before damage lands
   clAnimAttack(isPlayer);
+  await clDelay(350);
 
   if (move.selfKO) {
     const { dmg, typeMult } = clCalcDamage(attacker, move, defender);
-    if (typeMult === 0) { clLog(`${dLbl} is immune!`, '#666'); return; }
+    if (typeMult === 0) { clLog(`It doesn't affect ${dLbl}…`, '#666'); return; }
     const ei = effectLabel(typeMult); if (ei) clLog(ei.text, ei.color);
-    setTimeout(() => clAnimHurt(isPlayer), 220);
     defender.currentHp = Math.max(0, defender.currentHp - dmg);
     attacker.currentHp = 0;
-    clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b>! ${aLbl} fainted!`);
+    clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b>! ${aLbl} fainted from recoil!`);
+    renderCLBattle();
+    clAnimHurt(isPlayer); // fire AFTER render so the sprite element exists
     return;
   }
 
@@ -531,34 +724,65 @@ function clExecMove(attacker, move, moveName, defender, isPlayer) {
   if (typeMult === 0) { clLog(`It doesn't affect ${dLbl}…`, '#666'); return; }
   const ei = effectLabel(typeMult); if (ei) clLog(ei.text, ei.color);
 
-  // Hurt animation on defender, shake on big hits
-  setTimeout(() => {
-    clAnimHurt(isPlayer);
-    if (typeMult >= 2) clAnimShake(isPlayer);
-  }, 220);
-
   defender.currentHp = Math.max(0, defender.currentHp - dmg);
   clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b> damage!`);
+  renderCLBattle();
+  // Hurt animation fires AFTER render — sprite element is freshly in DOM
+  clAnimHurt(isPlayer);
+  if (typeMult >= 2) clAnimShake(isPlayer);
+  await clDelay(250);
 
-  if (move.recoil) {
+  // ── Post-hit item effects ──────────────────────────────────
+  // Focus Sash: survive fatal hit at 1 HP (only from full HP)
+  if (defender.item?.effect === 'focus_sash' && defender.currentHp <= 0 && !defender._sashUsed) {
+    const wasFull = defender.maxHp - dmg <= 0; // was at or below 0 after hit
+    // Check if they were at full HP before this hit
+    if ((defender.currentHp + dmg) >= defender.maxHp && !defender._sashUsed) {
+      defender.currentHp = 1;
+      defender._sashUsed = true;
+      clLog(`${dLbl} hung on with Focus Sash!`, '#ff9e40');
+      renderCLBattle();
+      await clDelay(200);
+    }
+  }
+
+  // Recoil
+  if (move.recoil && attacker.currentHp > 0) {
     const rd = Math.max(1, Math.floor(dmg * move.recoil));
     attacker.currentHp = Math.max(0, attacker.currentHp - rd);
     clLog(`${aLbl} took <b>${rd}</b> recoil damage!`, '#ff9e40');
+    clAnimHurt(!isPlayer);
+    renderCLBattle();
+    await clDelay(250);
   }
+
+  // Shell Bell: heal attacker
   if (attacker.item?.effect === 'shell_bell') {
     const h = Math.max(1, Math.floor(dmg / 4));
     attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + h);
     clLog(`${aLbl} restored ${h} HP (Shell Bell)!`, '#69f0ae');
+    renderCLBattle();
+    await clDelay(200);
   }
+
+  // Life Orb: cost 10% HP to attacker
   if (attacker.item?.effect === 'life_orb') {
     const sd = Math.max(1, Math.floor(attacker.maxHp * 0.1));
     attacker.currentHp = Math.max(1, attacker.currentHp - sd);
   }
-  if (defender.item?.effect === 'rocky_helmet' && move.cat === 'physical') {
+
+  // Rocky Helmet: punish contact moves
+  if (defender.item?.effect === 'rocky_helmet' && move.cat === 'physical' && attacker.currentHp > 0) {
     const rh = Math.floor(attacker.maxHp / 6);
     attacker.currentHp = Math.max(0, attacker.currentHp - rh);
     clLog(`${aLbl} was hurt by Rocky Helmet! (${rh})`, '#ff9e40');
+    clAnimHurt(!isPlayer);
+    renderCLBattle();
+    await clDelay(200);
   }
+
+  // Choice Scarf: speed boost (handled in clGetSpd via item.effect === 'spd_boost')
+  // Lucky Egg / Exp Share: no battle effect, only EXP (N/A in CL)
 }
 
 function clApplyStatus(move, attacker, defender, aLbl, dLbl) {
@@ -615,21 +839,32 @@ function clTickStatus(pk) {
 }
 
 // Switching wastes a turn — enemy attacks once
-function clDoSwitch(toIdx) {
+async function clDoSwitch(toIdx) {
   const b = window._clBattle;
+  if (!b || !b.waitingForAction || _clInputCooldown) return;
+  b.waitingForAction = false;
+  _clInputCooldown = true;
+
   const enemy = b.enemyTeam[b.enemyIdx];
   const oldName = b.playerTeam[b.playerIdx].name;
   b.playerIdx = toIdx;
   const newPk = b.playerTeam[toIdx];
   clLog(`${oldName}, come back!`, '#4fc3f7');
   clLog(`Go, <b style="color:#4fc3f7">${newPk.name}</b>!`, '#4fc3f7');
+  renderCLBattle();
+  await clDelay(300);
+
   // Enemy gets a free attack on the incoming pokemon
-  if (enemy.currentHp > 0) clEnemyTurn(newPk, enemy);
+  if (enemy.currentHp > 0) await clExecEnemySeq(newPk, enemy);
+  renderCLBattle();
+  await clDelay(200);
+
   if (newPk.currentHp > 0) clTickStatus(newPk);
-  if (enemy.currentHp > 0)  clTickStatus(enemy);
+  if (enemy.currentHp > 0) clTickStatus(enemy);
   b.turn++;
   renderCLBattle();
-  clCheckFaint();
+  await clCheckFaint();
+  setTimeout(() => { _clInputCooldown = false; }, 300);
 }
 
 async function clCheckFaint() {
@@ -675,7 +910,7 @@ async function clCheckFaint() {
 
 async function clTrainerDefeated() {
   const b = window._clBattle;
-  const gym = b.isRed ? CL_RED : CL_GYMS[b.gymId];
+  const gym = b.isSF ? null : (b.isRed ? CL_RED : CL_GYMS[b.gymId]);
 
   if (b.isLeader) { clGymBeaten(); return; }
 
@@ -715,6 +950,9 @@ async function clTrainerDefeated() {
 
 function clGymBeaten() {
   const b = window._clBattle;
+  // Simulated Fights mode
+  if (b.isSF) { sfFightWon(); return; }
+
   const gym = b.isRed ? CL_RED : CL_GYMS[b.gymId];
   const bid = b.isRed ? 'red' : (typeof b.gymId === 'string' ? parseInt(b.gymId, 10) : b.gymId);
 
@@ -767,10 +1005,383 @@ function clGymBeaten() {
 }
 
 function clBattleLost() {
+  const b = window._clBattle;
+  if (b && b.isSF) { sfRunOver(false); return; }
   document.getElementById('cl-content').innerHTML = `<div style="text-align:center;padding:40px 10px">
     <div style="font-size:44px;margin-bottom:10px">💀</div>
     <div style="font-family:'Press Start 2P',monospace;font-size:11px;color:#ef5350;margin-bottom:10px">BLACKED OUT!</div>
     <div style="font-size:16px;color:var(--text2);margin-bottom:16px;line-height:1.7">All your Pokémon fainted…<br>Heal up and try again!</div>
     <button onclick="renderCLLobby()" style="background:rgba(239,83,80,0.15);border:2px solid #ef5350;color:#ef5350;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:18px">← Back to League</button>
   </div>`;
+}
+
+// ============================================================
+// SIMULATED FIGHTS — Endless highscore mode, unlocked after Red
+// ============================================================
+
+// Eternatus pool: every 5 fights one appears, starting Lv.325 +25 per appearance
+// Regular fights: random Pokémon from a curated strong pool, scaled to fight number
+const SF_REGULAR_POOL = [
+  {id:149,name:"Dragonite",   types:["dragon","flying"], moves:["Outrage","Hurricane","Thunderbolt","Ice Beam"]},
+  {id:248,name:"Tyranitar",   types:["rock","dark"],     moves:["Stone Edge","Crunch","Earthquake","Fire Blast"]},
+  {id:376,name:"Metagross",   types:["steel","psychic"],  moves:["Meteor Mash","Zen Headbutt","Ice Punch","Earthquake"]},
+  {id:445,name:"Garchomp",    types:["dragon","ground"],  moves:["Outrage","Earthquake","Stone Edge","Swords Dance"]},
+  {id:461,name:"Weavile",     types:["dark","ice"],       moves:["Ice Punch","Crunch","Dark Pulse","Blizzard"]},
+  {id:472,name:"Gliscor",     types:["ground","flying"],  moves:["Earthquake","Aerial Ace","Stone Edge","Agility"]},
+  {id:142,name:"Aerodactyl",  types:["rock","flying"],    moves:["Stone Edge","Brave Bird","Aerial Ace","Earthquake"]},
+  {id:609,name:"Chandelure",  types:["ghost","fire"],     moves:["Shadow Ball","Flamethrower","Energy Ball","Overheat"]},
+  {id:373,name:"Salamence",   types:["dragon","flying"],  moves:["Outrage","Flamethrower","Earthquake","Dragon Claw"]},
+  {id:245,name:"Suicune",     types:["water"],            moves:["Surf","Ice Beam","Shadow Ball","Calm Mind"]},
+  {id:534,name:"Conkeldurr",  types:["fighting"],         moves:["Close Combat","Brick Break","Stone Edge","Poison Jab"]},
+  {id:530,name:"Excadrill",   types:["ground","steel"],   moves:["Earthquake","Iron Head","Stone Edge","Swords Dance"]},
+  {id:242,name:"Blissey",     types:["normal"],           moves:["Hyper Voice","Ice Beam","Flamethrower","Softboiled"]},
+  {id:196,name:"Espeon",      types:["psychic"],          moves:["Psychic","Shadow Ball","Calm Mind","Dazzling Gleam"]},
+  {id:229,name:"Houndoom",    types:["dark","fire"],      moves:["Dark Pulse","Flamethrower","Crunch","Nasty Plot"]},
+  {id:6,  name:"Charizard",   types:["fire","flying"],    moves:["Flare Blitz","Brave Bird","Dragon Claw","Aerial Ace"]},
+  {id:9,  name:"Blastoise",   types:["water"],            moves:["Hydro Pump","Ice Beam","Surf","Flash Cannon"]},
+  {id:3,  name:"Venusaur",    types:["grass","poison"],   moves:["Petal Blizzard","Sludge Bomb","Energy Ball","Sleep Powder"]},
+  {id:131,name:"Lapras",      types:["water","ice"],      moves:["Surf","Blizzard","Ice Beam","Psychic"]},
+  {id:65, name:"Alakazam",    types:["psychic"],          moves:["Psychic","Shadow Ball","Future Sight","Dazzling Gleam"]},
+];
+
+// Eternatus moveset — covers every relevant type, truly no safe answer
+const SF_ETERNATUS_MOVES = [
+  "Flamethrower",   // fire — covers Steel, Ice, Bug, Grass
+  "Thunderbolt",    // electric — covers Water, Flying
+  "Ice Beam",       // ice — covers Dragon, Grass, Flying, Ground
+  "Earth Power",    // ground — covers Fire, Poison, Rock, Steel, Electric
+];
+// Extra move pool rotated per appearance so it feels different
+const SF_ETERNATUS_EXTRA = [
+  ["Psychic","Sludge Bomb","Dark Pulse","Aura Sphere"],
+  ["Shadow Ball","Dragon Claw","Moonblast","Close Combat"],
+  ["Draco Meteor","Flash Cannon","Outrage","Focus Blast"],
+];
+
+function sfGetHighscore() {
+  return gameState.cl?.sfHighscore || 0;
+}
+
+function sfIsEternatusFight(fightNum) {
+  // fights 5,10,15,20,… (1-indexed)
+  return fightNum % 5 === 0;
+}
+
+function sfEternatusLevel(fightNum) {
+  // fight 5 → 325, fight 10 → 350, fight 15 → 375, …
+  const appearance = Math.floor(fightNum / 5); // 1st at fight 5
+  return 325 + (appearance - 1) * 25;
+}
+
+function sfGemReward(fightNum) {
+  // Every 5 wins: 25 gems base + 25 more per additional 5
+  // fight 5 → 25, fight 10 → 50, fight 15 → 75, …
+  const milestone = Math.floor(fightNum / 5);
+  return milestone * 25;
+}
+
+function sfRegularLevel(fightNum) {
+  // Starts at player's max level, +5 per fight
+  const maxLv = getCLMaxPlayerLevel();
+  return Math.min(500, maxLv + (fightNum - 1) * 5);
+}
+
+// State: window._sfBattle holds the run state
+// { fightNum, playerTeam, gemTotal, playerTeamSnapshot (original for re-use) }
+
+function startSimulatedFights() {
+  initCLState();
+  window._clTeamSel = [];
+  window._clMoveSel = {};
+  window._clItemSel = {};
+  _sfRenderTeamSelect();
+}
+
+function _sfRenderTeamSelect() {
+  const el = document.getElementById('cl-content');
+  const eligible = gameState.box.filter(p =>
+    !isBossOrLegendary(p) &&
+    !isMegaSceptile(p) && !isMegaSwampert(p) && !isMegaBlaziken(p) &&
+    !isMegaGengar(p) && !isMegaAggron(p) && !isMegaGarchomp(p) &&
+    !isMegaRayquaza(p) && !isOriginGiratina(p) && !isDNAFused(p)
+  ).sort((a, b) => b.level - a.level);
+
+  const sel = window._clTeamSel;
+  const highscore = sfGetHighscore();
+
+  const cards = eligible.map(pk => {
+    const picked = sel.includes(pk.uid);
+    const ord = picked ? sel.indexOf(pk.uid) + 1 : null;
+    const avg = pk.ivs ? Math.round(Object.values(pk.ivs).reduce((s, v) => s + v, 0) / 6) : 15;
+    const gr = getStatGrade(avg);
+    return `<div onclick="sfTogglePick(${pk.uid})" style="cursor:pointer;text-align:center;padding:7px 5px;border-radius:8px;background:rgba(255,255,255,${picked ? '0.12' : '0.03'});border:2px solid ${picked ? '#00e5ff' : 'rgba(255,255,255,0.1)'};transition:all 0.12s;position:relative">
+      ${picked ? `<div style="position:absolute;top:3px;right:5px;font-family:'Press Start 2P';font-size:8px;color:#00e5ff">${ord}</div>` : ''}
+      <img src="${getSpriteUrl(pk.id, pk.isShiny, pk.uid)}" width="50" height="50" style="image-rendering:pixelated">
+      <div style="font-size:12px;color:${pk.isShiny ? '#ffd700' : 'var(--text)'};">${pk.isShiny ? '★ ' : ''}${pk.name}</div>
+      <div style="font-size:11px;color:var(--text2)">Lv.${pk.level}</div>
+      <div style="font-family:'Press Start 2P';font-size:6px;color:${gr.color}">${gr.label}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <button onclick="renderCLLobby()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button>
+    <div style="background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(0,100,200,0.1));border:2px solid #00e5ff;border-radius:10px;padding:12px;margin-bottom:10px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#00e5ff;margin-bottom:4px">🌀 SIMULATED FIGHTS</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.6">Endless battles · heal 1 after each win<br>Every 5 wins: 💎 gems + Dynamax Eternatus boss</div>
+      ${highscore > 0 ? `<div style="font-size:14px;color:#ffd700;margin-top:4px">🏆 Highscore: <b>${highscore} fights</b></div>` : ''}
+    </div>
+    <div style="font-size:13px;color:#00e5ff;margin-bottom:5px">Select 3 Pokémon: <span style="color:var(--text2)">${sel.length}/3</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:290px;overflow-y:auto;margin-bottom:10px">${cards}</div>
+    ${sel.length === 3
+      ? `<button onclick="sfRenderMoveSetup()" style="width:100%;padding:10px;background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px">⚔️ Set Moves & Items →</button>`
+      : `<div style="text-align:center;color:var(--text2);font-size:13px">Choose ${3 - sel.length} more</div>`}
+  `;
+}
+
+function sfRenderMoveSetup() {
+  const el = document.getElementById('cl-content');
+  const team = window._clTeamSel.map(uid => gameState.box.find(p => p.uid === uid)).filter(Boolean);
+  team.forEach(pk => { if (!window._clMoveSel[pk.uid]) window._clMoveSel[pk.uid] = getDefaultCLMoves(pk); });
+
+  const sections = team.map(pk => {
+    const t = pk.types[0] || "normal", t2 = pk.types[1];
+    const pool = [...new Set([...(CL_TYPE_MOVES[t] || []), ...(t2 ? CL_TYPE_MOVES[t2] || [] : []), ...(window._clMoveSel[pk.uid] || [])])].slice(0, 16);
+    const chosen = window._clMoveSel[pk.uid];
+    const moveBtns = pool.map(m => {
+      const md = CL_MOVE_DB[m] || { power: 0, cat: 'physical', type: 'normal' };
+      const isPicked = chosen.includes(m);
+      const tc = TYPE_COLORS[md.type] || '#888';
+      const catLabel = md.cat === 'special' ? 'Sp' : md.cat === 'status' ? 'St' : 'Ph';
+      const catColor = md.cat === 'special' ? '#ce93d8' : md.cat === 'status' ? '#4fc3f7' : '#ffcc80';
+      return `<button onclick="sfToggleMove(${pk.uid},'${m}')" style="padding:5px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:13px;text-align:left;background:rgba(255,255,255,${isPicked ? '0.1' : '0.03'});border:1px solid ${isPicked ? '#00e5ff' : 'rgba(255,255,255,0.12)'};transition:all 0.1s">
+        <div style="display:flex;align-items:center;gap:3px;margin-bottom:1px">
+          <span style="font-size:9px;padding:1px 3px;border-radius:2px;background:${tc};color:#fff">${md.type}</span>
+          <span style="color:${catColor};font-size:10px">${catLabel}</span>
+          ${isPicked ? `<span style="color:#00e5ff;margin-left:auto;font-size:10px">#${chosen.indexOf(m)+1}</span>` : ''}
+        </div>
+        <div style="color:var(--text)">${m}</div>
+        ${md.power > 0 ? `<div style="color:var(--gold);font-size:11px">${md.power}p</div>` : '<div style="color:#4fc3f7;font-size:11px">status</div>'}
+      </button>`;
+    }).join('');
+    const itemOpts = ITEMS.map(it => `<option value="${it.id}" ${(window._clItemSel[pk.uid] || '') === it.id ? 'selected' : ''}>${it.emoji} ${it.name}</option>`).join('');
+    return `<div style="background:rgba(0,0,0,0.2);border:1px solid rgba(0,229,255,0.15);border-radius:8px;padding:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+        <img src="${getSpriteUrl(pk.id, pk.isShiny, pk.uid)}" width="44" height="44" style="image-rendering:pixelated">
+        <div>
+          <div style="font-size:15px;color:${pk.isShiny ? '#ffd700' : 'var(--text)'};">${pk.isShiny ? '★ ' : ''}${pk.name} <span style="color:var(--text2);font-size:12px">Lv.${pk.level}</span></div>
+          <div style="display:flex;gap:3px">${pk.types.map(ty => `<span class="type-badge" style="background:${TYPE_COLORS[ty]};font-size:10px;padding:1px 5px">${ty}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div style="font-family:'Press Start 2P';font-size:6px;color:var(--text2);margin-bottom:4px">MOVES — <span style="color:#00e5ff">${chosen.length}/4</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:6px">${moveBtns}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">${chosen.join(' / ') || '—'}</div>
+      <select onchange="window._clItemSel[${pk.uid}]=this.value" style="width:100%;background:#0a0a1a;border:1px solid var(--border);color:var(--text);padding:5px;border-radius:6px;font-family:'VT323',monospace;font-size:14px">
+        <option value="">— No Item —</option>${itemOpts}
+      </select>
+    </div>`;
+  }).join('');
+
+  const allReady = team.every(pk => (window._clMoveSel[pk.uid] || []).length === 4);
+  el.innerHTML = `
+    <button onclick="_sfRenderTeamSelect()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button>
+    <div style="font-family:'Press Start 2P';font-size:8px;color:#00e5ff;margin-bottom:8px">🌀 MOVES & ITEMS</div>
+    ${sections}
+    ${allReady
+      ? `<button onclick="sfBeginRun()" style="width:100%;padding:12px;background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:20px;letter-spacing:1px">🌀 START ENDLESS RUN!</button>`
+      : `<div style="text-align:center;color:var(--text2);font-size:14px;padding:6px;border:1px dashed rgba(255,255,255,0.1);border-radius:6px">Each Pokémon needs exactly 4 moves</div>`}
+  `;
+}
+
+function sfTogglePick(uid) {
+  const sel = window._clTeamSel;
+  const idx = sel.indexOf(uid);
+  if (idx !== -1) sel.splice(idx, 1);
+  else if (sel.length < 3) sel.push(uid);
+  _sfRenderTeamSelect();
+}
+
+function sfToggleMove(uid, moveName) {
+  const arr = window._clMoveSel[uid] = window._clMoveSel[uid] || [];
+  const idx = arr.indexOf(moveName);
+  if (idx !== -1) arr.splice(idx, 1);
+  else if (arr.length < 4) arr.push(moveName);
+  sfRenderMoveSetup();
+}
+
+async function sfBeginRun() {
+  try {
+    _clInputCooldown = false; // reset any lingering cooldown from previous battles
+    const rawTeam = window._clTeamSel.map(uid => gameState.box.find(p => p.uid === uid || p.uid === Number(uid))).filter(Boolean);
+    if (rawTeam.length === 0) { toast('❌ No valid Pokémon selected!', 2000); return; }
+    const maxPlayerLv = rawTeam.reduce((m, p) => Math.max(m, p.level || 1), 1);
+    const playerTeam = [];
+    for (const pk of rawTeam) {
+      const statsData = pk.stats || await fetchPokemonStats(pk.id).catch(() => null);
+      const baseHp = statsData ? (statsData.find(s => s.stat.name === 'hp')?.base_stat || 70) : 70;
+      const ivs = pk.ivs || generateIVs();
+      const maxHp = Math.floor(((baseHp * 2 + (ivs['hp'] ?? 15)) * pk.level / 100) + pk.level + 10);
+      const item = getCLItemById(window._clItemSel[pk.uid] || null);
+      const moves = window._clMoveSel[pk.uid] || getDefaultCLMoves(pk);
+      const entry = { uid: pk.uid, id: pk.id, name: pk.name, types: pk.types, level: pk.level, isShiny: pk.isShiny, statsData, ivs, maxHp, currentHp: maxHp, moves, item, stages: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: null, statusCounter: 0, isPlayer: true };
+      clInitPP(entry);
+      playerTeam.push(entry);
+    }
+    window._sfRun = { fightNum: 0, playerTeam, maxPlayerLv, gemTotal: 0 };
+    await sfNextFight();
+  } catch(e) {
+    console.error('sfBeginRun error:', e);
+    toast('❌ Error starting run: ' + e.message, 3000);
+  }
+}
+
+async function sfNextFight() {
+  try {
+  const run = window._sfRun;
+  run.fightNum++;
+  const isEternal = sfIsEternatusFight(run.fightNum);
+
+  let enemy;
+  if (isEternal) {
+    const lv = sfEternatusLevel(run.fightNum);
+    const extraIdx = (Math.floor(run.fightNum / 5) - 1) % SF_ETERNATUS_EXTRA.length;
+    const moves = [...SF_ETERNATUS_MOVES, ...SF_ETERNATUS_EXTRA[extraIdx]].slice(0, 4);
+    const sd = await fetchPokemonStats(890).catch(() => null);
+    const baseHp = sd ? (sd.find(s => s.stat.name === 'hp')?.base_stat || 255) : 255;
+    const ivs = { hp: 31, attack: 31, defense: 31, 'special-attack': 31, 'special-defense': 31, speed: 31 };
+    const maxHp = Math.floor(((baseHp * 2 + 31) * lv / 100) + lv + 10);
+    enemy = { id: 890, name: `Dynamax Eternatus`, types: ["poison", "dragon"], level: lv, statsData: sd, ivs, maxHp, currentHp: maxHp, moves, item: getCLItemById('life_orb'), stages: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: null, statusCounter: 0, isPlayer: false, _customSprite: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10190.png" };
+    clInitPP(enemy);
+  } else {
+    const pkDef = SF_REGULAR_POOL[Math.floor(Math.random() * SF_REGULAR_POOL.length)];
+    const lv = sfRegularLevel(run.fightNum);
+    const sd = await fetchPokemonStats(pkDef.id).catch(() => null);
+    const baseHp = sd ? (sd.find(s => s.stat.name === 'hp')?.base_stat || 70) : 70;
+    const ivs = generateIVs();
+    const maxHp = Math.floor(((baseHp * 2 + (ivs['hp'] ?? 15)) * lv / 100) + lv + 10);
+    enemy = { id: pkDef.id, name: pkDef.name, types: pkDef.types, level: lv, statsData: sd, ivs, maxHp, currentHp: maxHp, moves: pkDef.moves, item: null, stages: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 }, status: null, statusCounter: 0, isPlayer: false };
+    clInitPP(enemy);
+  }
+
+  // Reset stages/status on player team but keep HP as-is
+  run.playerTeam.forEach(pk => {
+    pk.stages = { atk: 0, def: 0, spa: 0, spd: 0, spe: 0 };
+    pk.status = null; pk.statusCounter = 0;
+    clInitPP(pk); // restore PP each fight
+  });
+  // Find first alive
+  const firstAlive = run.playerTeam.findIndex(p => p.currentHp > 0);
+  if (firstAlive === -1) { sfRunOver(); return; }
+
+  window._clBattle = {
+    gymId: 'sf', isRed: false, isSF: true,
+    trainerIdx: 0, isLeader: true,
+    playerTeam: run.playerTeam,
+    enemyTeam: [enemy],
+    playerIdx: firstAlive, enemyIdx: 0,
+    log: [], turn: 1, waitingForAction: true,
+    maxPlayerLv: run.maxPlayerLv,
+    trainerName: isEternal ? `DYNAMAX ETERNATUS` : enemy.name,
+  };
+  renderCLBattle();
+  } catch(e) {
+    console.error('sfNextFight error:', e);
+    toast('❌ Fight error: ' + e.message, 3000);
+  }
+}
+
+// Called by clGymBeaten / clBattleLost when isSF is true
+function sfFightWon() {
+  const run = window._sfRun;
+  const isEternal = sfIsEternatusFight(run.fightNum);
+  let gemGain = 0;
+
+  if (run.fightNum % 5 === 0) {
+    gemGain = sfGemReward(run.fightNum);
+    run.gemTotal += gemGain;
+    gameState.gems += gemGain;
+    updateResourceUI();
+  }
+
+  // Update highscore
+  if (!gameState.cl) gameState.cl = {};
+  if (run.fightNum > (gameState.cl.sfHighscore || 0)) {
+    gameState.cl.sfHighscore = run.fightNum;
+  }
+  saveGame();
+
+  // Reset heal token for this between-fight screen
+  run.healUsed = false;
+  sfRenderBetweenFight();
+}
+
+function sfRenderBetweenFight() {
+  const run = window._sfRun;
+  const isEternal = sfIsEternatusFight(run.fightNum);
+  const isBonus = run.fightNum % 5 === 0;
+  const gemGain = isBonus ? sfGemReward(run.fightNum) : 0;
+  const el = document.getElementById('cl-content');
+
+  // Build heal selector — only one can be clicked
+  const healOptions = run.playerTeam.map((pk, i) => {
+    const isDead = pk.currentHp <= 0;
+    const isFull = pk.currentHp >= pk.maxHp;
+    const canHeal = !run.healUsed && !isFull;
+    const borderColor = isDead ? 'rgba(239,83,80,0.5)' : isFull ? 'rgba(255,255,255,0.08)' : canHeal ? 'rgba(102,187,106,0.5)' : 'rgba(255,255,255,0.08)';
+    return `<button onclick="${canHeal ? `sfHealPokemon(${i})` : ''}" ${!canHeal ? 'disabled' : ''} style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border-radius:7px;cursor:${canHeal ? 'pointer' : 'default'};background:rgba(255,255,255,${canHeal ? '0.06' : '0.02'});border:1px solid ${borderColor};opacity:${canHeal ? 1 : 0.4};margin-bottom:5px">
+      <img src="${getSpriteUrl(pk.id, pk.isShiny, pk.uid)}" width="36" height="36" style="image-rendering:pixelated">
+      <div style="flex:1;text-align:left">
+        <div style="font-size:14px;color:${isDead ? '#ef5350' : 'var(--text)'};">${pk.name}</div>
+        <div style="font-size:12px;color:var(--text2)">${pk.currentHp}/${pk.maxHp} HP${isDead ? ' (fainted)' : isFull ? ' · Full' : ` · missing ${pk.maxHp - pk.currentHp}`}</div>
+      </div>
+      ${canHeal ? `<span style="font-size:13px;color:#69f0ae">🩺 HEAL</span>` : isFull ? `<span style="font-size:13px;color:#555">✓</span>` : `<span style="font-size:13px;color:#333">—</span>`}
+    </button>`;
+  }).join('');
+
+  const healNote = run.healUsed
+    ? `<div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#555;margin-bottom:6px">🩺 HEAL USED</div>`
+    : `<div style="font-family:'Press Start 2P',monospace;font-size:7px;color:#69f0ae;margin-bottom:6px">🩺 HEAL 1 POKÉMON (once per fight)</div>`;
+
+  el.innerHTML = `
+    <div style="text-align:center;margin-bottom:10px">
+      <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#00e5ff;margin-bottom:4px">🌀 FIGHT ${run.fightNum} CLEARED!</div>
+      ${isBonus ? `<div style="background:rgba(0,229,255,0.12);border:1px solid #00e5ff;border-radius:8px;padding:8px;margin:6px 0">
+        <div style="font-size:16px;color:#ffd700">+${gemGain} 💎 Gems!</div>
+        <div style="font-size:12px;color:var(--text2)">Total this run: ${run.gemTotal} 💎</div>
+      </div>` : `<div style="font-size:13px;color:var(--text2)">Total gems this run: ${run.gemTotal} 💎</div>`}
+      ${isEternal ? `<div style="font-size:12px;color:#ab47bc;margin-top:4px">⚡ Dynamax Eternatus defeated!</div>` : ''}
+    </div>
+    ${healNote}
+    ${healOptions}
+    <button onclick="sfNextFight()" style="width:100%;padding:10px;background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px;margin-top:6px">⚔️ Fight ${run.fightNum + 1}!</button>
+    <button onclick="sfRunOver(true)" style="width:100%;padding:8px;background:rgba(239,83,80,0.1);border:1px solid rgba(239,83,80,0.4);color:#ef5350;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:16px;margin-top:4px">🚪 Quit Run</button>
+  `;
+}
+
+function sfHealPokemon(idx) {
+  const run = window._sfRun;
+  if (!run || run.healUsed) return;
+  run.playerTeam[idx].currentHp = run.playerTeam[idx].maxHp;
+  run.healUsed = true;
+  sfRenderBetweenFight(); // re-render with heal now locked
+}
+
+function sfRunOver(voluntaryQuit = false) {
+  const run = window._sfRun || { fightNum: 0, gemTotal: 0 };
+  const score = voluntaryQuit ? run.fightNum : run.fightNum;
+  const hs = gameState.cl?.sfHighscore || 0;
+  const newHs = score > hs;
+  if (newHs && gameState.cl) gameState.cl.sfHighscore = score;
+  saveGame();
+
+  document.getElementById('cl-content').innerHTML = `
+    <div style="text-align:center;padding:30px 10px">
+      <div style="font-size:36px;margin-bottom:8px">${voluntaryQuit ? '🚪' : '💀'}</div>
+      <div style="font-family:'Press Start 2P',monospace;font-size:10px;color:#00e5ff;margin-bottom:8px">${voluntaryQuit ? 'RUN ENDED' : 'KNOCKED OUT!'}</div>
+      <div style="font-size:16px;color:var(--text2);margin-bottom:6px">Fights cleared: <b style="color:#ffd700">${score}</b></div>
+      ${newHs ? `<div style="font-size:14px;color:#ffd700;margin-bottom:6px">🏆 NEW HIGHSCORE!</div>` : `<div style="font-size:13px;color:var(--text2);margin-bottom:6px">Best: ${hs} fights</div>`}
+      <div style="font-size:15px;color:#69f0ae;margin-bottom:14px">Gems earned this run: <b>${run.gemTotal}</b> 💎</div>
+      <button onclick="startSimulatedFights()" style="background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:18px;margin-bottom:6px;width:100%">🔄 Try Again</button>
+      <button onclick="renderCLLobby()" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.2);color:var(--text2);padding:8px 20px;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:16px;width:100%">← Back to League</button>
+    </div>`;
+  window._sfRun = null;
 }

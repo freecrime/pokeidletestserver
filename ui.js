@@ -384,17 +384,20 @@ function debugFastHatch() {
 }
 
 function debugCLRematch(gymId) {
-  // Close debug panel and open CL overlay directly at team select for this gym
   closeDebug();
   initCLState();
   window._clTeamSel = [];
   window._clMoveSel = {};
   window._clItemSel = {};
-  const isRed = gymId === 'red';
   const ov = document.getElementById('cl-overlay');
   ov.style.display = 'flex';
-  renderCLTeamSelect(gymId, isRed);
-  toast(`🏆 CL Rematch: ${isRed ? 'Red' : (typeof CL_GYMS !== 'undefined' ? CL_GYMS[gymId]?.name : 'Gym ' + (gymId+1))}`, 2000);
+  if (gymId === 'sf') {
+    startSimulatedFights();
+  } else {
+    const isRed = gymId === 'red';
+    renderCLTeamSelect(gymId, isRed);
+    toast(`🏆 CL Rematch: ${isRed ? 'Red' : (typeof CL_GYMS !== 'undefined' ? CL_GYMS[gymId]?.name : 'Gym ' + (gymId + 1))}`, 2000);
+  }
 }
 
 function renderEggUI() {
