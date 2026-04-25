@@ -219,8 +219,18 @@ function renderCLLobby(){
   el.innerHTML = `<div style="font-family:'Press Start 2P';font-size:10px;background:linear-gradient(90deg,#ffd700,#ff8c00,#ffd700);background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 2s linear infinite;text-align:center;margin-bottom:6px">🏆 CHAMPION'S LEAGUE</div><div style="font-size:13px;color:var(--text2);text-align:center;margin-bottom:8px">Turn-based · 3 Pokémon · No legendaries/megas</div><div style="display:flex;justify-content:center;gap:10px;padding:8px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,215,0,0.2);border-radius:8px;margin-bottom:10px">${badgeRow}</div>${badges.length>0?`<div style="margin-bottom:10px"><div style="font-family:'Press Start 2P';font-size:7px;color:#ffd700;margin-bottom:5px">🏅 ACTIVE BONUSES</div>${bonusList}</div>`:''}<div style="font-family:'Press Start 2P';font-size:7px;color:var(--text2);margin-bottom:6px">GYM LEADERS</div>${gymCards}${redCard}${sfCard}`;
 }
 
-function startCLGym(gymId){initCLState();window._clTeamSel=[];window._clMoveSel={};window._clItemSel={};renderCLTeamSelect(gymId,false);}
-function startCLRed(){initCLState();window._clTeamSel=[];window._clMoveSel={};window._clItemSel={};renderCLTeamSelect('red',true);}
+function startCLGym(gymId){initCLState();window._clTeamSel=[];window._clMoveSel={};window._clItemSel={};window._clFilter={q:'',type:''};renderCLTeamSelect(gymId,false);}
+function startCLRed(){initCLState();window._clTeamSel=[];window._clMoveSel={};window._clItemSel={};window._clFilter={q:'',type:''};renderCLTeamSelect('red',true);}
+
+// Type colours for filter pills
+const CL_TYPE_COLORS={normal:'#A8A878',fire:'#F08030',water:'#6890F0',electric:'#F8D030',grass:'#78C850',ice:'#98D8D8',fighting:'#C03028',poison:'#A040A0',ground:'#E0C068',flying:'#A890F0',psychic:'#F85888',bug:'#A8B820',rock:'#B8A038',ghost:'#705898',dragon:'#7038F8',dark:'#705848',steel:'#B8B8D0',fairy:'#EE99AC'};
+
+function _clApplyFilter(list,q,type){
+  let out=list;
+  if(type) out=out.filter(p=>p.types&&p.types.includes(type));
+  if(q) out=out.filter(p=>p.name.toLowerCase().includes(q));
+  return out;
+}
 
 function renderCLTeamSelect(gymId,isRed){
   const gym=isRed?CL_RED:CL_GYMS[gymId];
@@ -228,8 +238,32 @@ function renderCLTeamSelect(gymId,isRed){
   const maxLv=getCLMaxPlayerLevel();
   const eligible=gameState.box.filter(p=>!isBossOrLegendary(p)&&!isMegaSceptile(p)&&!isMegaSwampert(p)&&!isMegaBlaziken(p)&&!isMegaGengar(p)&&!isMegaAggron(p)&&!isMegaGarchomp(p)&&!isMegaRayquaza(p)&&!isOriginGiratina(p)&&!isDNAFused(p)).sort((a,b)=>b.level-a.level);
   const sel=window._clTeamSel;
-  const cards=eligible.map(pk=>{const picked=sel.includes(pk.uid);const ord=picked?sel.indexOf(pk.uid)+1:null;const avg=pk.ivs?Math.round(Object.values(pk.ivs).reduce((s,v)=>s+v,0)/6):15;const gr=getStatGrade(avg);return`<div onclick="clTogglePick(${pk.uid},'${gymId}',${isRed})" style="cursor:pointer;text-align:center;padding:7px 5px;border-radius:8px;background:rgba(255,255,255,${picked?'0.12':'0.03'});border:2px solid ${picked?'#ffd700':'rgba(255,255,255,0.1)'};transition:all 0.12s;position:relative">${picked?`<div style="position:absolute;top:3px;right:5px;font-family:'Press Start 2P';font-size:8px;color:#ffd700">${ord}</div>`:''}<img src="${getSpriteUrl(pk.id,pk.isShiny,pk.uid)}" width="50" height="50" style="image-rendering:pixelated"><div style="font-size:12px;color:${pk.isShiny?'#ffd700':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pk.isShiny?'★ ':''}${pk.name}</div><div style="font-size:11px;color:var(--text2)">Lv.${pk.level}</div><div style="font-family:'Press Start 2P';font-size:6px;color:${gr.color}">${gr.label}</div></div>`;}).join('');
-  el.innerHTML=`<button onclick="renderCLLobby()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button><div style="background:linear-gradient(${gym.bgGrad});border:2px solid ${gym.color};border-radius:10px;padding:10px 12px;margin-bottom:10px"><div style="font-size:18px">${gym.badgeEmoji} <span style="color:${gym.color}">${gym.name}</span> <span style="font-size:12px;color:var(--text2)">${gym.city}</span></div><div style="font-size:13px;color:var(--text2);margin-top:2px">Min level: <span style="color:${maxLv>=gym.minLevel?'#66bb6a':'#ef5350'}">${gym.minLevel}</span> · Your highest: <span style="color:#ffd700">Lv.${maxLv}</span></div><div style="font-size:13px;color:#ffd700;margin-top:2px">${gym.boost.icon} ${gym.boost.desc}</div></div><div style="font-size:13px;color:#ffd700;margin-bottom:5px">Select 3 Pokémon: <span style="color:var(--text2)">${sel.length}/3</span></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:290px;overflow-y:auto;margin-bottom:10px">${cards}</div>${eligible.length===0?'<div style="color:#ef5350;text-align:center;padding:16px">No eligible Pokémon!</div>':''}${sel.length===3?`<button onclick="renderCLMoveSetup('${gymId}',${isRed})" style="width:100%;padding:10px;background:rgba(255,215,0,0.15);border:2px solid #ffd700;color:#ffd700;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px">⚔️ Set Moves & Items →</button>`:`<div style="text-align:center;color:var(--text2);font-size:13px">Choose ${3-sel.length} more</div>`}`;
+  if(!window._clFilter) window._clFilter={q:'',type:''};
+  const {q,type}=window._clFilter;
+
+  const allTypes=[...new Set(eligible.flatMap(p=>p.types||[]))].sort();
+  const typePills=allTypes.map(t=>{const c=CL_TYPE_COLORS[t]||'#888';const active=type===t;return`<span onclick="window._clFilter.type='${active?'':t}';renderCLTeamSelect('${gymId}',${isRed})" style="cursor:pointer;padding:2px 7px;border-radius:20px;font-size:11px;border:1.5px solid ${c};color:${active?'#111':c};background:${active?c:'transparent'};transition:all 0.1s">${t}</span>`;}).join('');
+
+  const visible=_clApplyFilter(eligible,q,type);
+  const cards=visible.map(pk=>{const picked=sel.includes(pk.uid);const ord=picked?sel.indexOf(pk.uid)+1:null;const avg=pk.ivs?Math.round(Object.values(pk.ivs).reduce((s,v)=>s+v,0)/6):15;const gr=getStatGrade(avg);return`<div onclick="clTogglePick(${pk.uid},'${gymId}',${isRed})" style="cursor:pointer;text-align:center;padding:7px 5px;border-radius:8px;background:rgba(255,255,255,${picked?'0.12':'0.03'});border:2px solid ${picked?'#ffd700':'rgba(255,255,255,0.1)'};transition:all 0.12s;position:relative">${picked?`<div style="position:absolute;top:3px;right:5px;font-family:'Press Start 2P';font-size:8px;color:#ffd700">${ord}</div>`:''}<img src="${getSpriteUrl(pk.id,pk.isShiny,pk.uid)}" width="50" height="50" style="image-rendering:pixelated"><div style="font-size:12px;color:${pk.isShiny?'#ffd700':'var(--text)'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pk.isShiny?'★ ':''}${pk.name}</div><div style="font-size:11px;color:var(--text2)">Lv.${pk.level}</div><div style="font-family:'Press Start 2P';font-size:6px;color:${gr.color}">${gr.label}</div></div>`;}).join('');
+
+  el.innerHTML=`
+    <button onclick="window._clFilter={q:'',type:''};renderCLLobby()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button>
+    <div style="background:linear-gradient(${gym.bgGrad});border:2px solid ${gym.color};border-radius:10px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:18px">${gym.badgeEmoji} <span style="color:${gym.color}">${gym.name}</span> <span style="font-size:12px;color:var(--text2)">${gym.city}</span></div>
+      <div style="font-size:13px;color:var(--text2);margin-top:2px">Min level: <span style="color:${maxLv>=gym.minLevel?'#66bb6a':'#ef5350'}">${gym.minLevel}</span> · Your highest: <span style="color:#ffd700">Lv.${maxLv}</span></div>
+      <div style="font-size:13px;color:#ffd700;margin-top:2px">${gym.boost.icon} ${gym.boost.desc}</div>
+    </div>
+    <div style="font-size:13px;color:#ffd700;margin-bottom:6px">Select 3 Pokémon: <span style="color:var(--text2)">${sel.length}/3</span></div>
+    <input id="cl-search" type="text" placeholder="🔍 Search Pokémon…" value="${q}" oninput="window._clFilter.q=this.value.toLowerCase().trim();renderCLTeamSelect('${gymId}',${isRed})" style="width:100%;box-sizing:border-box;padding:6px 10px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:var(--text);font-size:14px;margin-bottom:7px;outline:none">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${typePills}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:250px;overflow-y:auto;margin-bottom:10px">${cards}</div>
+    ${visible.length===0?'<div style="color:#ef5350;text-align:center;padding:12px">No Pokémon match your filter!</div>':''}
+    ${sel.length===3?`<button onclick="window._clFilter={q:'',type:''};renderCLMoveSetup('${gymId}',${isRed})" style="width:100%;padding:10px;background:rgba(255,215,0,0.15);border:2px solid #ffd700;color:#ffd700;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px">⚔️ Set Moves & Items →</button>`:`<div style="text-align:center;color:var(--text2);font-size:13px">Choose ${3-sel.length} more</div>`}
+  `;
+  // Keep focus + caret position in search box after re-render
+  const inp=document.getElementById('cl-search');
+  if(inp&&document.activeElement!==inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
 }
 
 function clTogglePick(uid,gymId,isRed){const sel=window._clTeamSel;const idx=sel.indexOf(uid);if(idx!==-1)sel.splice(idx,1);else if(sel.length<3)sel.push(uid);renderCLTeamSelect(gymId,isRed);}
@@ -241,7 +275,7 @@ function renderCLMoveSetup(gymId,isRed){
   team.forEach(pk=>{if(!window._clMoveSel[pk.uid])window._clMoveSel[pk.uid]=getDefaultCLMoves(pk);});
   const sections=team.map(pk=>{
     const t=pk.types[0]||"normal";const t2=pk.types[1];
-    const pool=[...new Set([...(CL_TYPE_MOVES[t]||[]),...(t2?CL_TYPE_MOVES[t2]||[]:[]),(window._clMoveSel[pk.uid]||[])])].flat().filter((v,i,a)=>a.indexOf(v)===i).slice(0,16);
+    const pool=[...new Set([...(CL_TYPE_MOVES[t]||[]),...(t2?CL_TYPE_MOVES[t2]||[]:[])])].slice(0,12);
     const chosen=window._clMoveSel[pk.uid];
     const moveBtns=pool.map(m=>{const md=CL_MOVE_DB[m]||{power:0,cat:'physical',type:'normal'};const isPicked=chosen.includes(m);const slot=chosen.indexOf(m);const catColor=md.cat==='special'?'#ce93d8':md.cat==='status'?'#4fc3f7':'#ffcc80';const catLabel=md.cat==='special'?'Sp':md.cat==='status'?'St':'Ph';const tc=TYPE_COLORS[md.type]||'#888';return`<button onclick="clToggleMove(${pk.uid},'${m}','${gymId}',${isRed})" style="padding:5px;border-radius:6px;cursor:pointer;font-family:'VT323',monospace;font-size:13px;text-align:left;background:rgba(255,255,255,${isPicked?'0.1':'0.03'});border:1px solid ${isPicked?'#ffd700':'rgba(255,255,255,0.12)'};transition:all 0.1s"><div style="display:flex;align-items:center;gap:3px;margin-bottom:1px"><span style="font-size:9px;padding:1px 3px;border-radius:2px;background:${tc};color:#fff">${md.type}</span><span style="color:${catColor};font-size:10px">${catLabel}</span>${isPicked?`<span style="color:#ffd700;margin-left:auto;font-size:10px">#${slot+1}</span>`:''}</div><div style="color:var(--text)">${m}</div>${md.power>0?`<div style="color:var(--gold);font-size:11px">${md.power}p</div>`:'<div style="color:#4fc3f7;font-size:11px">status</div>'}</button>`;}).join('');
     const itemOpts=ITEMS.map(it=>`<option value="${it.id}" ${(window._clItemSel[pk.uid]||'')=== it.id?'selected':''}>${it.emoji} ${it.name}</option>`).join('');
@@ -716,7 +750,7 @@ async function clExecMoveSeq(attacker, move, moveName, defender, isPlayer) {
     attacker.currentHp = 0;
     clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b>! ${aLbl} fainted from recoil!`);
     renderCLBattle();
-    clAnimHurt(isPlayer); // fire AFTER render so the sprite element exists
+    clAnimHurt(isPlayer);
     return;
   }
 
@@ -727,7 +761,7 @@ async function clExecMoveSeq(attacker, move, moveName, defender, isPlayer) {
   defender.currentHp = Math.max(0, defender.currentHp - dmg);
   clLog(`${dLbl} took <b style="color:#ffd700">${dmg}</b> damage!`);
   renderCLBattle();
-  // Hurt animation fires AFTER render — sprite element is freshly in DOM
+  // Fire AFTER render so the fresh sprite element exists in the DOM
   clAnimHurt(isPlayer);
   if (typeMult >= 2) clAnimShake(isPlayer);
   await clDelay(250);
@@ -751,8 +785,8 @@ async function clExecMoveSeq(attacker, move, moveName, defender, isPlayer) {
     const rd = Math.max(1, Math.floor(dmg * move.recoil));
     attacker.currentHp = Math.max(0, attacker.currentHp - rd);
     clLog(`${aLbl} took <b>${rd}</b> recoil damage!`, '#ff9e40');
-    clAnimHurt(!isPlayer);
     renderCLBattle();
+    clAnimHurt(!isPlayer);
     await clDelay(250);
   }
 
@@ -854,7 +888,6 @@ async function clDoSwitch(toIdx) {
   renderCLBattle();
   await clDelay(300);
 
-  // Enemy gets a free attack on the incoming pokemon
   if (enemy.currentHp > 0) await clExecEnemySeq(newPk, enemy);
   renderCLBattle();
   await clDelay(200);
@@ -1094,6 +1127,7 @@ function startSimulatedFights() {
   window._clTeamSel = [];
   window._clMoveSel = {};
   window._clItemSel = {};
+  window._clFilter = {q:'',type:''};
   _sfRenderTeamSelect();
 }
 
@@ -1108,8 +1142,14 @@ function _sfRenderTeamSelect() {
 
   const sel = window._clTeamSel;
   const highscore = sfGetHighscore();
+  if(!window._clFilter) window._clFilter={q:'',type:''};
+  const {q,type}=window._clFilter;
 
-  const cards = eligible.map(pk => {
+  const allTypes=[...new Set(eligible.flatMap(p=>p.types||[]))].sort();
+  const typePills=allTypes.map(t=>{const c=CL_TYPE_COLORS[t]||'#888';const active=type===t;return`<span onclick="window._clFilter.type='${active?'':t}';_sfRenderTeamSelect()" style="cursor:pointer;padding:2px 7px;border-radius:20px;font-size:11px;border:1.5px solid ${c};color:${active?'#111':c};background:${active?c:'transparent'};transition:all 0.1s">${t}</span>`;}).join('');
+
+  const visible=_clApplyFilter(eligible,q,type);
+  const cards = visible.map(pk => {
     const picked = sel.includes(pk.uid);
     const ord = picked ? sel.indexOf(pk.uid) + 1 : null;
     const avg = pk.ivs ? Math.round(Object.values(pk.ivs).reduce((s, v) => s + v, 0) / 6) : 15;
@@ -1124,18 +1164,23 @@ function _sfRenderTeamSelect() {
   }).join('');
 
   el.innerHTML = `
-    <button onclick="renderCLLobby()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button>
+    <button onclick="window._clFilter={q:'',type:''};renderCLLobby()" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:17px;margin-bottom:8px">← Back</button>
     <div style="background:linear-gradient(135deg,rgba(0,229,255,0.15),rgba(0,100,200,0.1));border:2px solid #00e5ff;border-radius:10px;padding:12px;margin-bottom:10px">
       <div style="font-family:'Press Start 2P',monospace;font-size:9px;color:#00e5ff;margin-bottom:4px">🌀 SIMULATED FIGHTS</div>
       <div style="font-size:14px;color:var(--text2);line-height:1.6">Endless battles · heal 1 after each win<br>Every 5 wins: 💎 gems + Dynamax Eternatus boss</div>
       ${highscore > 0 ? `<div style="font-size:14px;color:#ffd700;margin-top:4px">🏆 Highscore: <b>${highscore} fights</b></div>` : ''}
     </div>
-    <div style="font-size:13px;color:#00e5ff;margin-bottom:5px">Select 3 Pokémon: <span style="color:var(--text2)">${sel.length}/3</span></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:290px;overflow-y:auto;margin-bottom:10px">${cards}</div>
+    <div style="font-size:13px;color:#00e5ff;margin-bottom:6px">Select 3 Pokémon: <span style="color:var(--text2)">${sel.length}/3</span></div>
+    <input id="cl-search" type="text" placeholder="🔍 Search Pokémon…" value="${q}" oninput="window._clFilter.q=this.value.toLowerCase().trim();_sfRenderTeamSelect()" style="width:100%;box-sizing:border-box;padding:6px 10px;border-radius:8px;border:1.5px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.07);color:var(--text);font-size:14px;margin-bottom:7px;outline:none">
+    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">${typePills}</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;max-height:230px;overflow-y:auto;margin-bottom:10px">${cards}</div>
+    ${visible.length===0?'<div style="color:#ef5350;text-align:center;padding:12px">No Pokémon match your filter!</div>':''}
     ${sel.length === 3
-      ? `<button onclick="sfRenderMoveSetup()" style="width:100%;padding:10px;background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px">⚔️ Set Moves & Items →</button>`
+      ? `<button onclick="window._clFilter={q:'',type:''};sfRenderMoveSetup()" style="width:100%;padding:10px;background:rgba(0,229,255,0.15);border:2px solid #00e5ff;color:#00e5ff;border-radius:8px;cursor:pointer;font-family:'VT323',monospace;font-size:19px">⚔️ Set Moves & Items →</button>`
       : `<div style="text-align:center;color:var(--text2);font-size:13px">Choose ${3 - sel.length} more</div>`}
   `;
+  const inp=document.getElementById('cl-search');
+  if(inp&&document.activeElement!==inp){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
 }
 
 function sfRenderMoveSetup() {
@@ -1145,7 +1190,7 @@ function sfRenderMoveSetup() {
 
   const sections = team.map(pk => {
     const t = pk.types[0] || "normal", t2 = pk.types[1];
-    const pool = [...new Set([...(CL_TYPE_MOVES[t] || []), ...(t2 ? CL_TYPE_MOVES[t2] || [] : []), ...(window._clMoveSel[pk.uid] || [])])].slice(0, 16);
+    const pool = [...new Set([...(CL_TYPE_MOVES[t] || []), ...(t2 ? CL_TYPE_MOVES[t2] || [] : [])])].slice(0, 12);
     const chosen = window._clMoveSel[pk.uid];
     const moveBtns = pool.map(m => {
       const md = CL_MOVE_DB[m] || { power: 0, cat: 'physical', type: 'normal' };
