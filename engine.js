@@ -2176,7 +2176,7 @@ async function doEpicItemGacha(count) {
     } else if(roll < 0.45) {
       // ~35% epic roll - exclude meteorite (boss-only drop) and max_candy (handled above)
       wasEpic = true;
-      const epicPool = EPIC_ITEMS.filter(e => e.id !== 'meteorite' && e.id !== 'max_candy' && e.id !== 'origin_orb' && e.id !== 'dna_splicer' && e.id !== 'heros_sword' && e.id !== 'heros_shield' && e.id !== 'royal_sword' && e.id !== 'royal_shield' && e.id !== 'outer_world_meteor' && e.id !== 'sss_candy' && e.id !== 'sceptilite' && e.id !== 'swampertite' && e.id !== 'blazikenite' && e.id !== 'gengarite' && e.id !== 'aggronite' && e.id !== 'garchompite' && e.id !== 'red_orb' && e.id !== 'blue_orb' && e.id !== 'mysterious_meteorite');
+      const epicPool = EPIC_ITEMS.filter(e => e.id !== 'meteorite' && e.id !== 'max_candy' && e.id !== 'origin_orb' && e.id !== 'origin_core' && e.id !== 'dna_splicer' && e.id !== 'heros_sword' && e.id !== 'heros_shield' && e.id !== 'royal_sword' && e.id !== 'royal_shield' && e.id !== 'outer_world_meteor' && e.id !== 'sss_candy' && e.id !== 'sceptilite' && e.id !== 'swampertite' && e.id !== 'blazikenite' && e.id !== 'gengarite' && e.id !== 'aggronite' && e.id !== 'garchompite' && e.id !== 'red_orb' && e.id !== 'blue_orb' && e.id !== 'mysterious_meteorite');
       item = Math.random() < 0.60 ? EPIC_ITEMS.find(e=>e.id==='rare_candy') : epicPool[Math.floor(Math.random()*epicPool.length)];
     } else {
       item = ITEMS[Math.floor(Math.random()*ITEMS.length)];
@@ -2274,7 +2274,7 @@ async function doPremiumItemGacha() {
   gameState.gold -= COST;
   updateResourceUI();
 
-  const bossOnly = new Set(['meteorite','outer_world_meteor','origin_orb','dna_splicer','heros_sword','heros_shield','royal_sword','royal_shield','red_orb','blue_orb','mysterious_meteorite']);
+  const bossOnly = new Set(['meteorite','outer_world_meteor','origin_orb','origin_core','dna_splicer','heros_sword','heros_shield','royal_sword','royal_shield','red_orb','blue_orb','mysterious_meteorite']);
   const epicPool  = EPIC_ITEMS.filter(e => !bossOnly.has(e.id) && e.id !== 'max_candy' && e.id !== 'rare_candy' && e.id !== 'sss_candy' && e.id !== 'sceptilite' && e.id !== 'swampertite' && e.id !== 'blazikenite' && e.id !== 'gengarite' && e.id !== 'aggronite' && e.id !== 'garchompite');
   const sssCandy  = EPIC_ITEMS.find(e => e.id === 'sss_candy');
   const maxCandy  = EPIC_ITEMS.find(e => e.id === 'max_candy');

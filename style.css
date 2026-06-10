@@ -1365,7 +1365,7 @@ body::before {
 /* achievement battle sprite: edge-only rim glow that waves through the rainbow.
    Constrain HEIGHT and let width follow the gif's native aspect ratio (no stretching). */
 .achievement-sprite {
-  height: 300px !important; width: auto !important;
+  width: 450px !important; height: 450px !important; object-fit: contain !important;
   animation: achRainbowGlow 4s linear infinite;
 }
 @keyframes achRainbowGlow {
