@@ -824,8 +824,6 @@ function getEffectiveStat(stat, pokemon, statName) {
     }
     if(item.effect === 'meteorite' && pokemon.id === 384) val = Math.floor(val * 2.45); // Mega Rayquaza
     if(pokemon._isEnvy) val = Math.floor(val * 1.2); // Envy: modest boost, weaker than Mega
-    if(pokemon._naturalSSS) val = Math.floor(val * 2.0); // Natural SSS (e.g. Hero Greninja)
-    if(pokemon._sssUsed && pokemon._sssStat === statName) val = Math.floor(val * 1.4); // SSS Candy (+40% on one stat)
     if(item.effect === 'origin_orb' && pokemon.id === 487) val = Math.floor(val * 2.0); // Origin Giratina: SSS = 2x all stats
     if(item.effect === 'origin_core' && (pokemon.id === 483 || pokemon.id === 484)) val = Math.floor(val * 2.0); // Origin Dialga / Origin Palkia: 2x all stats
     // Perfected Zygarde: SSS stats, balanced — strong but not top-tier with held item
@@ -932,6 +930,16 @@ function getEffectiveStat(stat, pokemon, statName) {
       val = Math.floor(val * (1 + pokemon._megaStoneBonus.pct));
     }
   }
+  // Natural SSS — applies with OR without a held item (achievement rewards, event-SSS catches, Hero Greninja).
+  // Per-mon multipliers (_sssAtk / _sssDef / _sssSpe) give reward mons distinct offense/bulk profiles; default ×2.
+  if(pokemon._naturalSSS) {
+    let m = 2.0;
+    if(statName === 'attack' || statName === 'special-attack') m = pokemon._sssAtk || 2.0;
+    else if(statName === 'defense' || statName === 'special-defense') m = pokemon._sssDef || 2.0;
+    else if(statName === 'speed') m = pokemon._sssSpe || 2.0;
+    val = Math.floor(val * m);
+  }
+  if(pokemon._sssUsed && pokemon._sssStat === statName) val = Math.floor(val * 1.4); // SSS Candy (+40% on one stat) — works on any mon, held item or not
   return val;
 }
 
@@ -949,7 +957,7 @@ function getMaxHp(pokemon) {
   if(pokemon._sssUsed && pokemon._sssStat === 'hp') hp = Math.floor(hp * 1.4);
   if(item?.effect === 'meteorite' && pokemon.id === 384) hp = Math.floor(hp * 1.35); // Mega Rayquaza
   if(pokemon._isEnvy) hp = Math.floor(hp * 1.2); // Envy: modest HP boost
-  if(pokemon._naturalSSS) hp = Math.floor(hp * 2.0); // Natural SSS (e.g. Hero Greninja)
+  if(pokemon._naturalSSS) hp = Math.floor(hp * (pokemon._sssHp || 2.0)); // Natural SSS (default ×2; per-mon override via _sssHp)
   if(item?.effect === 'origin_orb' && pokemon.id === 487) hp = Math.floor(hp * 2.0); // Origin Giratina
   if(item?.effect === 'origin_core' && (pokemon.id === 483 || pokemon.id === 484)) hp = Math.floor(hp * 2.0); // Origin Dialga / Origin Palkia
   if(isPerfectedZygarde(pokemon)) hp = Math.floor(hp * 2.2); // Perfected Zygarde

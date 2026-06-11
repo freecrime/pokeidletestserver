@@ -2369,6 +2369,7 @@ function loadGame() {
     gameState.gold = save.gold || 500;
     gameState.gems = save.gems || 15;
     gameState.wins = save.wins || 0;
+    gameState.legendUids = save.legendUids || []; // cumulative legendaries-ever-caught
     gameState.wave = save.wave || 1;
     gameState.inventory = save.inventory || {};
     gameState.equippedItems = save.equippedItems || {};
@@ -3188,11 +3189,28 @@ function setAllSaves(saves) {
   localStorage.setItem(MULTI_SAVE_KEY, JSON.stringify(saves));
 }
 
+// Cumulative legendary tracking: remember the uid of every legendary ever caught,
+// so the count survives releasing / fusing / losing them (and dedupes across sessions).
+function trackLegends() {
+  try {
+    if (typeof gameState === 'undefined' || !gameState || !Array.isArray(gameState.box)) return;
+    if (!Array.isArray(gameState.legendUids)) gameState.legendUids = [];
+    const seen = new Set(gameState.legendUids);
+    let added = false;
+    gameState.box.forEach(p => {
+      if (p && p._legend && p.uid != null && !seen.has(p.uid)) { seen.add(p.uid); added = true; }
+    });
+    if (added) gameState.legendUids = Array.from(seen);
+  } catch(e){}
+}
+
 function buildSaveData(slotName) {
+  trackLegends();
   return {
     name: slotName,
     savedAt: Date.now(),
     gold: gameState.gold, gems: gameState.gems, wins: gameState.wins, wave: gameState.wave,
+    legendUids: gameState.legendUids || [],
     inventory: gameState.inventory, equippedItems: gameState.equippedItems,
     dailyClaimed: gameState.dailyClaimed, lastDaily: gameState.lastDaily,
     road: gameState.road, pUid, trainerName: gameState.trainerName,
@@ -3201,7 +3219,7 @@ function buildSaveData(slotName) {
       isShiny:p.isShiny, currentHp:p.currentHp, exp:p.exp, expToNext:p.expToNext,
       stats:p.stats, statsLoaded:p.statsLoaded, ivs:p.ivs, ot:p.ot,
       _fusedWith:p._fusedWith||null, _fusedUid:p._fusedUid||null, _isFusedInto:p._isFusedInto||null,
-      _naturalSSS:p._naturalSSS||false, _noEvolve:p._noEvolve||false, _customSprite:p._customSprite||null, _achievementMon:p._achievementMon||false, _spriteFallback:p._spriteFallback||null,
+      _naturalSSS:p._naturalSSS||false, _sssAtk:p._sssAtk||null, _sssDef:p._sssDef||null, _sssHp:p._sssHp||null, _sssSpe:p._sssSpe||null, _noEvolve:p._noEvolve||false, _customSprite:p._customSprite||null, _achievementMon:p._achievementMon||false, _spriteFallback:p._spriteFallback||null,
       _sssUsed:p._sssUsed||false, _sssStat:p._sssStat||null, _noMega:p._noMega||false, _isBossCode:p._isBossCode||false, _isEnvy:p._isEnvy||false,
       _zygardeForm:p._zygardeForm||null, _isHeroGreninja:p._isHeroGreninja||false,
       _deoxysForm:p._deoxysForm||null, _isDeoxys:p._isDeoxys||false,
@@ -3583,13 +3601,18 @@ function pfAggregate() {
   saves.forEach(sv => {
     st.gold += sv.gold||0; st.gems += sv.gems||0; st.wins += sv.wins||0;
     if ((sv.wave||0) > st.highestWave) st.highestWave = sv.wave||0;
+    let boxLegends = 0;
     (sv.box||[]).forEach(p => {
       st.mons++; if (p.id!=null) species.add(p.id);
       if (p.isShiny) st.shinies++;
-      if (p._legend) st.legendaries++;
+      if (p._legend) boxLegends++;
       if ((p.level||0) > st.maxLevel) st.maxLevel = p.level||0;
       if (p.ivs && IVK.every(k => p.ivs[k]===31)) st.perfect++;
     });
+    // Legendaries = TOTAL ever caught (cumulative uids, survives release/fuse/loss),
+    // with the current box count as a safety floor in case a catch path wasn't captured.
+    const everCaught = Array.isArray(sv.legendUids) ? sv.legendUids.length : 0;
+    st.legendaries += Math.max(everCaught, boxLegends);
   });
   st.species = species.size;
   return st;
@@ -3610,10 +3633,10 @@ const PF_MONS = {
   hooh:      { id:250, name:'Ho-Oh',     types:['fire','flying'],    level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'250.gif', fallback:ART+'250.png' },
   rayquaza:  { id:384, name:'Rayquaza',  types:['dragon','flying'],  level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'384.gif', fallback:ART+'384.png' },
   haxorus:      { id:612, name:'Haxorus',           types:['dragon'],           level:120, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'612.gif',       fallback:ART+'612.png', noSSS:true },
-  zacian_c:     { id:888, name:'Crowned Zacian',    types:['fairy','steel'],    level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'10188.gif',     fallback:ART+'888.png' },
-  zamazenta_c:  { id:889, name:'Crowned Zamazenta', types:['fighting','steel'], level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'10189.gif',     fallback:ART+'889.png' },
-  black_kyurem: { id:646, name:'Black Kyurem',      types:['dragon','ice'],     level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'646-black.gif', fallback:ART+'646.png' },
-  white_kyurem: { id:646, name:'White Kyurem',      types:['dragon','ice'],     level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'646-white.gif', fallback:ART+'646.png' },
+  zacian_c:     { id:888, name:'Crowned Zacian',    types:['fairy','steel'],    level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'10188.gif',     fallback:ART+'888.png', sssAtk:3.2, sssDef:1.6, sssHp:1.6, sssSpe:2.2 },
+  zamazenta_c:  { id:889, name:'Crowned Zamazenta', types:['fighting','steel'], level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'10189.gif',     fallback:ART+'889.png', sssAtk:1.7, sssDef:3.2, sssHp:3.0, sssSpe:1.9 },
+  black_kyurem: { id:646, name:'Black Kyurem',      types:['dragon','ice'],     level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'646-black.gif', fallback:ART+'646.png', sssAtk:2.0, sssDef:2.3, sssHp:2.4, sssSpe:1.9 },
+  white_kyurem: { id:646, name:'White Kyurem',      types:['dragon','ice'],     level:150, ivs:{hp:31,attack:31,defense:31,'special-attack':31,'special-defense':31,speed:31}, sprite:GIF+'646-white.gif', fallback:ART+'646.png', sssAtk:2.5, sssDef:1.8, sssHp:1.7, sssSpe:2.0 },
 };
 const PF_FRAMES = { void:{name:'Void'}, inferno:{name:'Inferno'}, aurora:{name:'Aurora'}, nebula:{name:'Nebula'}, glitch:{name:'Glitch'}, gold:{name:'Gold'}, rainbow:{name:'Rainbow'}, golden_glow:{name:'Golden Glow'}, holy_glow:{name:'Holy Glow'}, dark_thunder:{name:'Dark Thunder'}, hot_red_flame:{name:'Hot Red Flame'} };
 const PF_TITLES = { Rookie:'Rookie', Collector:'Collector', Master:'Master', 'Shiny Hunter':'Shiny Hunter', Champion:'Champion', Veteran:'Veteran', Tycoon:'Tycoon', Legend:'Legend', Breeder:'Breeder', Ascended:'Ascended', Completionist:'Completionist' };
@@ -3639,8 +3662,8 @@ const PF_ACHIEVEMENTS = [
   { id:'gold1m',   icon:'💰', name:'Tycoon',            desc:'Amass 1,000,000 gold total',     req:s=>s.gold>=1000000,    unlock:{title:'Tycoon', gems:800} },
   { id:'gold10m',  icon:'🤑', name:'Mogul',             desc:'Amass 10,000,000 gold total',    req:s=>s.gold>=10000000,   unlock:{frame:'glitch', gems:2500} },
   { id:'gem10k',   icon:'💠', name:'Gem Hoarder',       desc:'Hold 10,000 gems total',         req:s=>s.gems>=10000,      unlock:{gems:1000} },
-  { id:'legend1',  icon:'🦄', name:'Legendary Keeper',  desc:'Own a legendary Pokémon',        req:s=>s.legendaries>=1,   unlock:{title:'Legend', gems:600} },
-  { id:'legend5',  icon:'🌌', name:'Legend Collector',  desc:'Own 5 legendary Pokémon',        req:s=>s.legendaries>=5,   unlock:{frame:'void', gems:2500} },
+  { id:'legend1',  icon:'🦄', name:'Legendary Keeper',  desc:'Catch a legendary Pokémon',      req:s=>s.legendaries>=1,   unlock:{title:'Legend', gems:600} },
+  { id:'legend5',  icon:'🌌', name:'Legend Collector',  desc:'Catch 5 legendary Pokémon',      req:s=>s.legendaries>=5,   unlock:{frame:'void', gems:2500} },
   { id:'perfect1', icon:'🔱', name:'Perfectionist',     desc:'Own a flawless (6×31) Pokémon',  req:s=>s.perfect>=1,       unlock:{gems:800} },
   { id:'perfect5', icon:'🧬', name:'Master Breeder',    desc:'Own 5 flawless Pokémon',         req:s=>s.perfect>=5,       unlock:{title:'Breeder', gems:2500} },
   { id:'lv100',    icon:'📈', name:'Centurion',         desc:'Raise a Pokémon to Lv 100',      req:s=>s.maxLevel>=100,    unlock:{gems:600} },
@@ -3648,7 +3671,7 @@ const PF_ACHIEVEMENTS = [
   { id:'wave5k',   icon:'🌀', name:'Tidal Guardian',    desc:'Reach wave 5000',                req:s=>s.highestWave>=5000,unlock:{mon:'lugia', gems:3000} },
   { id:'shiny50',  icon:'🦚', name:'Rainbow Phoenix',   desc:'Own 50 shiny Pokémon',           req:s=>s.shinies>=50,      unlock:{mon:'hooh', gems:3000} },
   { id:'perfect10',icon:'🐉', name:'Sky Sovereign',     desc:'Own 10 flawless Pokémon',        req:s=>s.perfect>=10,      unlock:{mon:'rayquaza', gems:3500} },
-  { id:'legend30',  icon:'🐲', name:'Legendary Master',   desc:'Own 30 legendary Pokémon',       req:s=>s.legendaries>=30,    unlock:{mon:'haxorus', gems:4000} },
+  { id:'legend30',  icon:'🐲', name:'Legendary Master',   desc:'Catch 30 legendary Pokémon in total', req:s=>s.legendaries>=30,    unlock:{mon:'haxorus', gems:4000} },
   { id:'wave15k',   icon:'🥇', name:'Golden Ascendant',   desc:'Reach wave 15000',               req:s=>s.highestWave>=15000, unlock:{frame:'golden_glow', mon:'zamazenta_c', gems:5000} },
   { id:'wave35k',   icon:'😇', name:'Hallowed Sovereign', desc:'Reach wave 35000',               req:s=>s.highestWave>=35000, unlock:{frame:'holy_glow', mon:'zacian_c', gems:7000} },
   { id:'perfect100',icon:'⚡', name:'Flawless Legion',    desc:'Own 100 flawless Pokémon',       req:s=>s.perfect>=100,       unlock:{frame:'dark_thunder', mon:'black_kyurem', gems:6000} },
@@ -3851,7 +3874,13 @@ async function pfGrantMon(def) {
     if (def.sprite) { pk._customSprite = def.sprite; pk._customSpriteShiny = def.sprite; }
     if (def.fallback) pk._spriteFallback = def.fallback;
     pk._achievementMon = true;   // custom achievement shine + sparkles + 🏅 marker (not the cosmic tier)
-    if (!def.noSSS) pk._naturalSSS = true;  // SSS tier (×2 stats); mons flagged noSSS (e.g. Haxorus) keep base stats with perfect IVs
+    if (!def.noSSS) {
+      pk._naturalSSS = true;     // SSS tier; mons flagged noSSS (e.g. Haxorus) keep base stats with perfect IVs
+      if (def.sssAtk) pk._sssAtk = def.sssAtk;   // per-mon offense / bulk profile (default ×2 each)
+      if (def.sssDef) pk._sssDef = def.sssDef;
+      if (def.sssHp)  pk._sssHp  = def.sssHp;
+      if (def.sssSpe) pk._sssSpe = def.sssSpe;
+    }
     try { pk.stats = await fetchPokemonStats(def.id); pk.statsLoaded = true; pk.currentHp = getMaxHp(pk); } catch(e){}
     gameState.box.push(pk);
     try { saveGame(); } catch(e){}
@@ -3927,6 +3956,12 @@ function pfMigrateRewardSprites() {
       if (!def) return;
       const wantSSS = !def.noSSS;
       if (!!p._naturalSSS !== wantSSS)   { p._naturalSSS = wantSSS;          changed = true; }
+      // sync per-mon SSS multipliers so the rebalance applies to already-claimed mons on load
+      [['_sssAtk','sssAtk'],['_sssDef','sssDef'],['_sssHp','sssHp'],['_sssSpe','sssSpe']].forEach(([pf,df]) => {
+        const v = (wantSSS && def[df]) ? def[df] : undefined;
+        if (v === undefined) { if (p[pf] !== undefined) { delete p[pf]; changed = true; } }
+        else if (p[pf] !== v) { p[pf] = v; changed = true; }
+      });
       if (p.isShiny)                     { p.isShiny = false;                 changed = true; }
       // upgrade to full 6×31 (SSS) IVs
       if (p.ivs) { for (const kk in p.ivs) { if (p.ivs[kk] !== 31) { p.ivs[kk] = 31; changed = true; } } }

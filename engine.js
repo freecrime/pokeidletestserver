@@ -117,6 +117,7 @@ function loadSaveSlotFromPicker(slotIdx) {
     gameState.gold = s.gold || 500;
     gameState.gems = s.gems || 15;
     gameState.wins = s.wins || 0;
+    gameState.legendUids = s.legendUids || []; // cumulative legendaries-ever-caught (uids); empty for old saves → re-seeded from current box on next save
     gameState.wave = s.wave || 1;
     gameState.inventory = s.inventory || {};
     gameState.equippedItems = s.equippedItems || {};
