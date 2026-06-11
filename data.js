@@ -5,7 +5,7 @@
 // 2× Diamond Road Gem Boost — set endDate to control when it expires
 // Set endDate to a past date to disable, far future to make permanent
 // ── Dev toggle — set to true to show the debug button ──
-const DEBUG_MODE = true;
+const DEBUG_MODE = false;
 const DEBUG_PASSWORD = 'pokemon123'; // Change this to your own password
 
 const GEM_BOOST_EVENT = {
