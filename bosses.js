@@ -946,7 +946,7 @@ function handleSwordShieldFailed() { handleGroudonKyogreFailed(); }
 // ============================================================
 
 // ▶ PASTE YOUR WORKER URL HERE after deploying to Cloudflare:
-const TRADE_WORKER_URL = 'https://pkmtrade.nichtbannenbitte008.workers.dev';
+const TRADE_WORKER_URL = 'https://pkmtrade.freecrime.workers.dev';
 
 // Internal state for the online trade flow
 let _onlineTradeCountdownInterval = null;
