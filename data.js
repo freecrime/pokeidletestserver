@@ -892,37 +892,42 @@ function getEffectiveStat(stat, pokemon, statName) {
     // Mega Sceptile
     if(item.effect === 'sceptilite' && pokemon.id === 254) {
       const isSSSCandyStat = pokemon._sssUsed && pokemon._sssStat === statName;
-      if(isSSSCandyStat) val = Math.floor(val * 2.3); // SSS candy stat → MEGA tier (extra boost)
+      if(isSSSCandyStat) val = Math.floor(val * 4.8); // SSS candy stat → MEGA tier (extra boost)
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 4.4); // boosted attack, hits ~5-6k at lvl 250
       else val = Math.floor(val * 1.85); // all other stats → SSS tier
     }
     // Mega Swampert
     if(item.effect === 'swampertite' && pokemon.id === 260) {
       const isSSSCandyStat = pokemon._sssUsed && pokemon._sssStat === statName;
-      if(isSSSCandyStat) val = Math.floor(val * 2.3);
+      if(isSSSCandyStat) val = Math.floor(val * 2.5);
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 2.15);
       else val = Math.floor(val * 1.85);
     }
     // Mega Blaziken
     if(item.effect === 'blazikenite' && pokemon.id === 257) {
       const isSSSCandyStat = pokemon._sssUsed && pokemon._sssStat === statName;
-      if(isSSSCandyStat) val = Math.floor(val * 2.3);
+      if(isSSSCandyStat) val = Math.floor(val * 2.5);
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 2.15);
       else val = Math.floor(val * 1.85);
     }
     // Mega Gengar
     if(item.effect === 'gengarite' && pokemon.id === 94) {
       const isSSSCandyStat = pokemon._sssUsed && pokemon._sssStat === statName;
-      if(isSSSCandyStat) val = Math.floor(val * 1.9);
+      if(isSSSCandyStat) val = Math.floor(val * 4.0);
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 3.6);
       else val = Math.floor(val * 1.5);
     }
     // Mega Aggron — The Wall: massive defense, reduced attack
     if(item.effect === 'aggronite' && pokemon.id === 306) {
       if(statName === 'defense' || statName === 'special-defense') val = Math.floor(val * 4.0);
-      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 0.6);
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 0.85);
       else val = Math.floor(val * 1.5);
     }
     // Mega Garchomp
     if(item.effect === 'garchompite' && pokemon.id === 445) {
       const isSSSCandyStat = pokemon._sssUsed && pokemon._sssStat === statName;
-      if(isSSSCandyStat) val = Math.floor(val * 1.9);
+      if(isSSSCandyStat) val = Math.floor(val * 2.5);
+      else if(statName === 'attack' || statName === 'special-attack') val = Math.floor(val * 2.15);
       else val = Math.floor(val * 1.5);
     }
     // Pre-rolled stone bonus (new stones only; old ones have _megaStoneBonus = null)
@@ -979,12 +984,12 @@ function getMaxHp(pokemon) {
   }
   if(item?.effect === 'outer_world_meteor' && pokemon.id === 384 && !pokemon._isEnvy) hp = Math.floor(hp * 1.35); // Outer World Mega Rayquaza (same as meteorite)
   if(item?.effect === 'outer_world_meteor' && pokemon._isEnvy) hp = Math.floor(hp * 2.0); // Envy Unbound
-  if(item?.effect === 'sceptilite' && pokemon.id === 254) hp = Math.floor(hp * 1.2); // Mega Sceptile ~2060
-  if(item?.effect === 'swampertite' && pokemon.id === 260) hp = Math.floor(hp * 1.1); // Mega Swampert ~2300
-  if(item?.effect === 'blazikenite' && pokemon.id === 257) hp = Math.floor(hp * 1.15); // Mega Blaziken ~2120
-  if(item?.effect === 'gengarite' && pokemon.id === 94) hp = Math.floor(hp * 1.15); // Mega Gengar ~2000
-  if(item?.effect === 'aggronite' && pokemon.id === 306) hp = Math.floor(hp * 5.0); // Mega Aggron THE WALL ~6000 HP
-  if(item?.effect === 'garchompite' && pokemon.id === 445) hp = Math.floor(hp * 1.1); // Mega Garchomp ~2200
+  if(item?.effect === 'sceptilite' && pokemon.id === 254) hp = Math.floor(hp * 1.4); // Mega Sceptile, boosted
+  if(item?.effect === 'swampertite' && pokemon.id === 260) hp = Math.floor(hp * 1.3); // Mega Swampert, boosted
+  if(item?.effect === 'blazikenite' && pokemon.id === 257) hp = Math.floor(hp * 1.35); // Mega Blaziken, boosted
+  if(item?.effect === 'gengarite' && pokemon.id === 94) hp = Math.floor(hp * 1.35); // Mega Gengar, boosted
+  if(item?.effect === 'aggronite' && pokemon.id === 306) hp = Math.floor(hp * 5.5); // Mega Aggron THE WALL, boosted
+  if(item?.effect === 'garchompite' && pokemon.id === 445) hp = Math.floor(hp * 1.3); // Mega Garchomp, boosted
   return hp;
 }
 
@@ -994,7 +999,16 @@ function getAttack(pokemon) {
   const spa = pokemon.stats.find(s=>s.stat.name==='special-attack').base_stat;
   // If player has chosen an attack mode, respect it; enemies always use best
   let statName;
-  if(pokemon._attackMode === 'physical') {
+  // Mega Sceptile & Mega Gengar are special attackers — force special mode
+  // even if _attackMode was left on the default 'physical', so their Mega
+  // stone bonus actually applies to their strong stat.
+  const equippedId = gameState.equippedItems[pokemon.uid];
+  const resolvedId = getMegaStoneBaseId(equippedId) || equippedId;
+  const isForcedSpecialMega = (resolvedId === 'sceptilite' && pokemon.id === 254) ||
+                               (resolvedId === 'gengarite' && pokemon.id === 94);
+  if(isForcedSpecialMega) {
+    statName = 'special-attack';
+  } else if(pokemon._attackMode === 'physical') {
     statName = 'attack';
   } else if(pokemon._attackMode === 'special') {
     statName = 'special-attack';
